@@ -57,7 +57,7 @@ async function getSelectedCountdown() {
   const cacheKey = `${window.selectedCSVOption}|${isSpanishEnabled()}`;
   if (cacheKey === selectedCountdownCacheKey) return selectedCountdownCache;
 
-  const index = await findRowIndexFromServer("data/CountDownToDate.csv");
+  const index = await findRowIndexFromServer("Data/CountDownToDate.csv");
   const dateValue = getColumnValue(csvText, index, 3);
   const timeValue = getColumnValue(csvText, index, 4);
   const selectedRow = csvText.replace(/\r/g, "").split('\n').filter(r => r.trim()).map(parseDelimitedRow).filter(rowMatchesSelectedSchedule)[index];

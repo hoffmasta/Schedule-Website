@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.addEventListener('input', updateCountdownSelection);
     e.addEventListener('change', updateCountdownSelection);
     try {
-        const txt = loadDatabaseText('data/CountDownToDate.csv', 'countdown');
+        const txt = loadDatabaseText('Data/CountDownToDate.csv', 'countdown');
         const rows = txt.split('\n').map(r => r.trim()).filter(Boolean).map(parseDelimitedRow).filter(rowMatchesSelectedSchedule);
         rows.forEach(columns => {
             const value = columns[0]?.trim();

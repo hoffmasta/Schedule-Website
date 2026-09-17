@@ -1,6 +1,6 @@
-const scheduleFile = "data/MainSchedule.csv";
-const specialScheduleFile = "data/SpecialScheduleDays.csv";
-const periodTextFile = "data/PeriodText.csv";
+const scheduleFile = "Data/MainSchedule.csv";
+const specialScheduleFile = "Data/SpecialScheduleDays.csv";
+const periodTextFile = "Data/PeriodText.csv";
 
 function getSelectedScheduleSelection() {
 	return (localStorage.getItem("scheduleSelection") || "").trim();
@@ -62,7 +62,7 @@ function buildScheduleFilterOptions() {
 
 	const csvSources = [
 		{ path: scheduleFile, key: "mainSchedule" },
-		{ path: "data/CountDownToDate.csv", key: "countdown" },
+		{ path: "Data/CountDownToDate.csv", key: "countdown" },
 		{ path: specialScheduleFile, key: "specialScheduleDays" }
 	];
 
