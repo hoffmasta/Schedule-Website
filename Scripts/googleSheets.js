@@ -51,7 +51,10 @@ function loadDatabaseText(localPath, sheetKey) {
 
 function loadLocalDatabaseText(localPath) {
     const localRequest = new XMLHttpRequest();
-    localRequest.open("GET", localPath, false);
+    // Bust the browser HTTP cache so updated CSVs aren't served stale on repeat visits.
+    const cacheBustedPath = `${localPath}?cacheBust=${Date.now()}`;
+    localRequest.open("GET", cacheBustedPath, false);
+    localRequest.setRequestHeader("Cache-Control", "no-cache");
     localRequest.send();
     if (localRequest.status < 200 || localRequest.status >= 300) {
         throw new Error(`Could not load ${localPath}`);
