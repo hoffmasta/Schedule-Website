@@ -2,6 +2,14 @@ const scheduleFile = "Data/MainSchedule.csv";
 const specialScheduleFile = "Data/SpecialScheduleDays.csv";
 const periodTextFile = "Data/PeriodText.csv";
 
+function showScheduleDataStatus(message) {
+	const status = document.getElementById("schedule-upload-status");
+	if (!status) return;
+	status.textContent = message;
+	status.hidden = !message;
+	status.dataset.state = message ? "error" : "";
+}
+
 function getSelectedScheduleSelection() {
 	return (localStorage.getItem("scheduleSelection") || "").trim();
 }
@@ -224,12 +232,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		const uploadStatus = document.getElementById("schedule-upload-status");
 		const sheetSelect = document.getElementById("custom-schedule-sheet");
 		const showUploadStatus = message => {
-			if (uploadStatus) uploadStatus.textContent = message;
+			if (!uploadStatus) return;
+			uploadStatus.textContent = message;
+			uploadStatus.hidden = !message;
+			uploadStatus.dataset.state = message ? "error" : "";
 		};
 		const selectedSheetKey = sheetSelect?.value || "mainSchedule";
 		if (localStorage.getItem(`customScheduleError_${selectedSheetKey}`) === "true") {
 			const sourceName = window.databaseSource === "google" ? "Google Sheets" : "the bundled local CSV";
-			showUploadStatus(`The uploaded ${selectedSheetKey} CSV has an error. Using ${sourceName}.`);
+			showUploadStatus(`Upload issue: using ${sourceName} until a valid CSV is uploaded.`);
 		}
 		uploadInput.addEventListener("change", async () => {
 			const file = uploadInput.files[0];
@@ -237,8 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			const sheetKey = sheetSelect?.value || "mainSchedule";
 			const supportedKeys = new Set(["mainSchedule", "countdown", "specialScheduleDays", "periodText"]);
 			if (!supportedKeys.has(sheetKey) || !/\.csv$/i.test(file.name)) {
-				showUploadStatus("The selected upload has an error. Choose a valid CSV file.");
-				window.alert("Choose a CSV file and select one of the four CSV types first.");
+				showUploadStatus("Upload issue: choose a valid CSV file for the selected data type.");
 				uploadInput.value = "";
 				return;
 			}
@@ -248,16 +258,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			} catch {
 				localStorage.removeItem(`customSchedule_${sheetKey}`);
 				localStorage.setItem(`customScheduleError_${sheetKey}`, "true");
-				showUploadStatus(`The uploaded ${sheetKey} CSV has an error. Using the fallback data.`);
-				window.alert("This CSV could not be read. The bundled local CSV will be used.");
+				showUploadStatus("Upload issue: this CSV could not be read, so fallback data will be used.");
 				window.location.reload();
 				return;
 			}
 			if (!uploadedCsvLooksValid(text, sheetKey)) {
 				localStorage.removeItem(`customSchedule_${sheetKey}`);
 				localStorage.setItem(`customScheduleError_${sheetKey}`, "true");
-				showUploadStatus(`The uploaded ${sheetKey} CSV has an error. Using the fallback data.`);
-				window.alert("This CSV does not match the selected type. The bundled local CSV will be used.");
+				showUploadStatus("Upload issue: this CSV does not match the selected type, so fallback data will be used.");
 				window.location.reload();
 				return;
 			}
@@ -284,6 +292,11 @@ function getLocalizedCsvValue(columns, englishIndex, spanishIndex) {
 }
 
 function normalizeScheduleTime(value) {
+	if (typeof value !== "string" || !/^\d{1,2}:\d{1,2}(:\d{1,2})?$/.test(value.trim())) {
+		throw new Error(`Invalid schedule time: ${value ?? "missing value"}`);
+	}
+
+	value = value.trim();
 	const parts = value.split(":");
 	const hour = parts[0].padStart(2, "0");
 	const minute = parts[1].padStart(2, "0");
@@ -309,7 +322,15 @@ function loadMainSchedule() {
 		const end = columns[hasNameColumn ? 6 : 5];
 		if (!days || !period || !start || !end || period === "Hour/Period") continue;
 
-		const time = `${normalizeScheduleTime(start)}-${normalizeScheduleTime(end)}`;
+		let time;
+		try {
+			time = `${normalizeScheduleTime(start)}-${normalizeScheduleTime(end)}`;
+		} catch (error) {
+			const message = "Schedule issue: a class with an invalid time was skipped.";
+			showScheduleDataStatus(message);
+			console.warn(`${message} ${error.message}`);
+			continue;
+		}
 		const normalizedPeriod = period;
 		const dayList = days.split(",").map(day => day.trim());
 
@@ -426,7 +447,15 @@ function loadSpecialSchedules() {
 				continue;
 			}
 			if (!period || !start || !end) continue;
-			const time = `${normalizeScheduleTime(start)}-${normalizeScheduleTime(end)}`;
+			let time;
+			try {
+				time = `${normalizeScheduleTime(start)}-${normalizeScheduleTime(end)}`;
+			} catch (error) {
+				const message = "Schedule issue: a special day with an invalid time was skipped.";
+				showScheduleDataStatus(message);
+				console.warn(`${message} ${error.message}`);
+				continue;
+			}
 			if (!schedules[dateKey]) schedules[dateKey] = {};
 			schedules[dateKey][period] = time;
 		}

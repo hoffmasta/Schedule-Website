@@ -75,7 +75,7 @@
         <p class="lead">Use this guide to edit schedule data safely and upload it to the website.</p>
     </header>
 
-    <h2>The four file types</h2>
+    <h2>The Four File Types</h2>
     <div class="grid">
         <article class="card"><h3>Main Schedule</h3><p>Controls the normal start and end times for each period on Monday through Friday.</p></article>
         <article class="card"><h3>Countdown</h3><p>Controls countdown events such as breaks, quarter ends, and the end of the year.</p></article>
@@ -83,7 +83,7 @@
         <article class="card"><h3>Period Text</h3><p>Converts period codes such as <code>WH</code> or <code>L</code> into display names.</p></article>
     </div>
 
-    <h2>What each file contains</h2>
+    <h2>What Each File Contains</h2>
     <section>
         <h3>Main Schedule</h3>
         <p>Columns: Campus, Grade Level Category/Group, Days, Hour/Period, Start Time, End Time. All files use commas, and day lists containing commas must be quoted.</p>
@@ -107,7 +107,28 @@ WH,Warrior Hour,Hora del Guerrero
 L,Lunch,Almuerzo</pre>
     </section>
 
-    <h2>How to edit</h2>
+    <h2>How to Add or Change Period Text</h2>
+    <section>
+        <p>Use the <code>Data/PeriodText.csv</code> file to control the name shown for each class, break, or activity. Each row has three columns: the period code, English text, and Spanish text.</p>
+        <ol>
+            <li>Open <code>Data/PeriodText.csv</code> in a spreadsheet program or text editor.</li>
+            <li>Find the row for the period code used in the Main Schedule <code>Hour/Period</code> column.</li>
+            <li>Type the English name in the second column, <code>Text</code>.</li>
+            <li>Type the Spanish name in the third column, <code>Text in Spanish</code>, when a Spanish translation is needed.</li>
+            <li>Keep the code in the first column unchanged so the schedule can find the correct text.</li>
+            <li>Save the file as a UTF-8 comma-separated <code>.csv</code> file, then upload it as <strong>Period Text</strong>.</li>
+            <li>Turn on <strong>Use Spanish</strong> in Settings to see the Spanish text; turn it off to see the English text.</li>
+        </ol>
+        <h3>Example</h3>
+        <pre>Code,Text, Text in Spanish
+WH,Warrior Hour,Hora del Guerrero
+L,Lunch,Almuerzo
+1,1st period,1er periodo</pre>
+        <p>With <strong>Use Spanish</strong> off, <code>WH</code> displays as <code>Warrior Hour</code>. With it on, <code>WH</code> displays as <code>Hora del Guerrero</code>. If the Spanish cell is blank, the website displays the English text instead.</p>
+        <div class="notice"><strong>Important:</strong> Add a new row when the Main Schedule uses a code that is not already listed. For example, a Main Schedule row with <code>SEC</code> needs a matching <code>SEC</code> row in Period Text.</div>
+    </section>
+
+    <h2>How to Edit</h2>
     <section>
         <ol>
             <li>Make a copy of the matching example file.</li>
@@ -120,7 +141,7 @@ L,Lunch,Almuerzo</pre>
         </ol>
     </section>
 
-    <h2>How to upload</h2>
+    <h2>How to Upload</h2>
     <section>
         <ol>
             <li>Open Settings, then open <strong>Schedule Data</strong>.</li>
@@ -131,7 +152,7 @@ L,Lunch,Almuerzo</pre>
         <div class="notice"><strong>Important:</strong> Select the correct type before choosing the file. A Main Schedule CSV selected as Period Text will be rejected.</div>
     </section>
 
-    <h2>Which data wins?</h2>
+    <h2>Which Data Wins?</h2>
     <section>
         <ol>
             <li>A valid uploaded CSV wins for its own type.</li>
