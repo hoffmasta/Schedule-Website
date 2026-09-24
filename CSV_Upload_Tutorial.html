@@ -86,9 +86,11 @@
     <h2>What Each File Contains</h2>
     <section>
         <h3>Main Schedule</h3>
-        <p>Columns: Campus, Grade Level Category/Group, Days, Hour/Period, Start Time, End Time. All files use commas, and day lists containing commas must be quoted.</p>
-        <pre>Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Hour/Period,Start Time (24 hr),End Time (24 hr)
-    Vinland,High School,"M, T, Th",1,8:15:01,8:58</pre>
+        <p>Columns: Campus, Grade Level Category/Group, Days, Week, Hour/Period, Start Time, End Time. All files use commas, and day lists containing commas must be quoted.</p>
+        <pre>Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Week,Hour/Period,Start Time (24 hr),End Time (24 hr)
+    Vinland,High School,"M, T, Th",1,1,8:15:01,8:58
+    Vinland,High School,"W, F",2,1,8:59,9:40</pre>
+        <p>The <code>Week</code> column controls repeating schedule rotations. The <strong>This Week</strong> option automatically selects the current rotation week. When the file contains only one week, the selector shows only <strong>This Week</strong>.</p>
 
         <h3>Countdown</h3>
         <p>Columns: Name, Campus, Grade Level Category/Group, Date, Time, Name in Spanish.</p>

@@ -531,11 +531,11 @@ function cancelUpdText() {
     sText.style.transitionDuration = "350ms"
 }
 function autoUpdNavbar(element) {
-    isAutoUpdText = true
+    isAutoUpdNav = true
     actualNavBar.style.transitionDuration = "100ms"
     requestAnimationFrame(anim)
     function anim() {
-        if (!isAutoUpdText) return
+        if (!isAutoUpdNav) return
         requestAnimationFrame(anim)
         colorNavBar = element.value
         actualNavBar.style.backgroundColor = element.value
@@ -574,7 +574,9 @@ function cancelUpdIcon() {
 const space = document.getElementById("navbarspace")
 function setBGImageStatus(message) {
     const status = document.getElementById("bg-image-status")
-    if (status) status.textContent = message
+    if (!status) return
+    status.textContent = message
+    status.hidden = !message
 }
 async function updateBGImage(element) {
     try {
@@ -674,7 +676,7 @@ function updateNbOp(element) {
     anim()
 }
 function cancelUpdateNbOp() {
-    isAutoUpdNav = false
+    isUpdNavBarOp = false
 }
 function saveNavbarOpacity(element) {
     localStorage.setItem("navbarOpacity", element.value)
@@ -854,7 +856,7 @@ function resetSettings() {
     const settingKeys = [
         "bgColor", "textColor", "navbar", "icon", "bgImage", "bgImageSize", "bgWidth", "bgRepeat",
         "font", "preset", "fx", "timeControl", "useSpanish", "databaseSource", "scheduleSelection",
-        "countdownSelection", "manualTextColor", "navbarOpacity", "countdownTextColor", "manualCountdownTextColor", "countdownBackgroundColor"
+        "scheduleWeekOffset", "countdownSelection", "countdownMode", "customCountdownDate", "customCountdownLabel", "manualTextColor", "navbarOpacity", "countdownTextColor", "manualCountdownTextColor", "countdownBackgroundColor"
     ]
 
     settingKeys.forEach(key => localStorage.removeItem(key))
@@ -907,54 +909,52 @@ function playBackgroundVideo(sourcePath) {
 function Thanksgiving() {
     return playBackgroundVideo('Videos/charlie brown.mp4')
 }
-function Christmas() {
+function createSnowfallEffect(stopMusicFn) {
     try {
-    let StopMusic = PlayChristmasMusic()
-    function addSnow() {
-        let snow = document.createElement('img')
-        snow.src = "icons/snowflake.png"
-        snow.className = 'snow'
-        snow.style.left = badrng(0,100) + "%"
-        snow.style.top = "-10%"
-        // const randRot = badrng(0,360)
-        // snow.style.transform = `rotate(${randRot}deg)`
-        document.body.appendChild(snow)
-    }
-    
-    let an = requestAnimationFrame(anim) 
-    let spawnFrame = 10
-    let frameElapsed = 0
-    function anim() {
-        frameElapsed ++
-        // con.innerHTML = 'init'
-        an = requestAnimationFrame(anim)
-        if (frameElapsed % spawnFrame == 0) {
-            addSnow()
+        const stopMusic = typeof stopMusicFn === "function" ? stopMusicFn() : null
+        const addSnow = () => {
+            const snow = document.createElement("img")
+            snow.src = "icons/snowflake.png"
+            snow.className = "snow"
+            snow.style.left = `${badrng(0, 100)}%`
+            snow.style.top = "-10%"
+            document.body.appendChild(snow)
         }
-        const elements = document.querySelectorAll('.snow')
-        elements.forEach(element => {
-            let height = parseFloat(element.style.top.replace("%","")) || 0
-            // let rotation = parseFloat(element.style.transform.replace('rotate(',"").replace(')',"").replace('deg','')) || 0
-            // rotation += 2 * (1 / 60)
-            height += 10 * (1 / 60)
-            element.style.top = height + "%"
-            // element.style.transform = `rotate(${rotation}deg)`
-            if (height > 100) {
-                element.remove()
+
+        let animationFrameId = requestAnimationFrame(animate)
+        let spawnFrame = 10
+        let frameElapsed = 0
+
+        function animate() {
+            frameElapsed++
+            animationFrameId = requestAnimationFrame(animate)
+            if (frameElapsed % spawnFrame === 0) {
+                addSnow()
             }
-        });
-    }
-    return () => {
-        StopMusic()
-        const elements = document.querySelectorAll('.snow')
-        elements.forEach(element => {
-            element.remove()
-        });
-        cancelAnimationFrame(an)
-    }
+            const elements = document.querySelectorAll(".snow")
+            elements.forEach(element => {
+                const height = (parseFloat(element.style.top.replace("%", "")) || 0) + 10 * (1 / 60)
+                element.style.top = `${height}%`
+                if (height > 100) {
+                    element.remove()
+                }
+            })
+        }
+
+        return () => {
+            if (typeof stopMusic === "function") stopMusic()
+            const elements = document.querySelectorAll(".snow")
+            elements.forEach(element => element.remove())
+            cancelAnimationFrame(animationFrameId)
+        }
     } catch (err) {
-        con.innerHTML = err
+        if (window.con) con.innerHTML = err
+        return () => {}
     }
+}
+
+function Christmas() {
+    return createSnowfallEffect(PlayChristmasMusic)
 }
 function Cranberry() {
     return playBackgroundVideo('Videos/cranberry.mp4')
@@ -1133,53 +1133,7 @@ function Subnautica() {
     return playLoopingAudio('Music/subnautica.mp3')
 }
 function Daniella() {
-    try {
-    let StopMusic = PlayNutsMusic()
-    function addSnow() {
-        let snow = document.createElement('img')
-        snow.src = "icons/snowflake.png"
-        snow.className = 'snow'
-        snow.style.left = badrng(0,100) + "%"
-        snow.style.top = "-10%"
-        // const randRot = badrng(0,360)
-        // snow.style.transform = `rotate(${randRot}deg)`
-        document.body.appendChild(snow)
-    }
-    
-    let an = requestAnimationFrame(anim) 
-    let spawnFrame = 10
-    let frameElapsed = 0
-    function anim() {
-        frameElapsed ++
-        // con.innerHTML = 'init'
-        an = requestAnimationFrame(anim)
-        if (frameElapsed % spawnFrame == 0) {
-            addSnow()
-        }
-        const elements = document.querySelectorAll('.snow')
-        elements.forEach(element => {
-            let height = parseFloat(element.style.top.replace("%","")) || 0
-            // let rotation = parseFloat(element.style.transform.replace('rotate(',"").replace(')',"").replace('deg','')) || 0
-            // rotation += 2 * (1 / 60)
-            height += 10 * (1 / 60)
-            element.style.top = height + "%"
-            // element.style.transform = `rotate(${rotation}deg)`
-            if (height > 100) {
-                element.remove()
-            }
-        });
-    }
-    return () => {
-        StopMusic()
-        const elements = document.querySelectorAll('.snow')
-        elements.forEach(element => {
-            element.remove()
-        });
-        cancelAnimationFrame(an)
-    }
-    } catch (err) {
-        con.innerHTML = err
-    }
+    return createSnowfallEffect(PlayNutsMusic)
 }
 function GoatEdit() {
     let last_bron = 1
@@ -1369,6 +1323,26 @@ function applyPreset(name) {
             fxSelect.value = preset['fx']
             changeFX(fxSelect)
         }
+    }
+    if (Object.prototype.hasOwnProperty.call(preset, 'cdm')) {
+        const countdownMode = preset['cdm'] === 'custom' ? 'custom' : 'csv'
+        localStorage.setItem('countdownMode', countdownMode)
+        if (typeof window.selectedCSVOption === 'string' && countdownMode === 'custom') {
+            window.selectedCSVOption = ''
+        }
+        if (preset['cdd']) localStorage.setItem('customCountdownDate', preset['cdd'])
+        else localStorage.removeItem('customCountdownDate')
+        if (preset['cdl']) localStorage.setItem('customCountdownLabel', preset['cdl'])
+        else localStorage.removeItem('customCountdownLabel')
+        const countdownSelect = document.getElementById('myDropdown')
+        if (countdownSelect) {
+            countdownSelect.value = countdownMode === 'custom' ? 'custom' : ''
+            countdownSelect.dispatchEvent(new Event('change', { bubbles: true }))
+        }
+        const customDate = document.getElementById('custom-countdown-date')
+        const customLabel = document.getElementById('custom-countdown-label')
+        if (customDate) customDate.value = preset['cdd'] || ''
+        if (customLabel) customLabel.value = preset['cdl'] || ''
     }
     for (let x = 0; x < setTexts.length; x++) {
         const t = setTexts[x]

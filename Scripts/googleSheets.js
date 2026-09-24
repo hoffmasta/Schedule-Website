@@ -7,7 +7,8 @@ window.googleSheetsConfig = {
         mainSchedule: "MainSchedule",
         countdown: "CountDownToDate",
         specialScheduleDays: "SpecialScheduleDays",
-        periodText: "PeriodText"
+        periodText: "PeriodText",
+        settingTranslations: "SettingTranslations"
     }
 };
 

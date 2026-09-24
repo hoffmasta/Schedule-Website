@@ -11,7 +11,7 @@ This website supports four schedule data files. You can upload one file at a tim
 **Header:**
 
 ```text
-Campus\tGrade Level Category/Group\tDay/s of the Week(M,T,W,Th, and/or F)\tHour/Period\tStart Time (24 hr)\tEnd Time (24 hr)
+Campus\tGrade Level Category/Group\tDay/s of the Week(M,T,W,Th, and/or F)\tWeek\tHour/Period\tStart Time (24 hr)\tEnd Time (24 hr)
 ```
 
 **Columns:**
@@ -21,6 +21,7 @@ Campus\tGrade Level Category/Group\tDay/s of the Week(M,T,W,Th, and/or F)\tHour/
 | Campus | Campus or school location | `Vinland` |
 | Grade Level Category/Group | Grade or school group | `High School` |
 | Day/s of the Week | Days when this row applies | `M, T, Th` |
+| Week | Schedule rotation week | `1`, `2`, or `3` |
 | Hour/Period | Period name or code | `1`, `L`, `HRM` |
 | Start Time | Start time using a 24-hour clock | `8:15:01` |
 | End Time | End time using a 24-hour clock | `8:58` |
@@ -28,12 +29,14 @@ Campus\tGrade Level Category/Group\tDay/s of the Week(M,T,W,Th, and/or F)\tHour/
 **Example:**
 
 ```text
-Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Hour/Period,Start Time (24 hr),End Time (24 hr)
-Vinland,High School,"M, T, Th",1,8:15:01,8:58
-Vinland\tHigh School\tW, F\t1\t8:59\t9:40
+Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Week,Hour/Period,Start Time (24 hr),End Time (24 hr)
+Vinland,High School,"M, T, Th",1,1,8:15:01,8:58
+Vinland,High School,"W, F",2,1,8:59,9:40
 ```
 
 Use `M`, `T`, `W`, `Th`, and `F` for Monday through Friday. Separate multiple days with commas and put the whole day list in quotation marks. All four files are comma-separated.
+
+The `Week` column controls repeating schedule rotations. Use the same week value for every row in one schedule, then add another set of rows with a different value for another week. The website's `This Week` option automatically selects the rotating week. If the file contains only one week, the selector shows only `This Week` and uses that schedule.
 
 ### 2. Countdown
 
@@ -140,10 +143,11 @@ The Code must match the value in the Main Schedule `Hour/Period` column. If it d
 3. Edit one row per schedule item, event, special day, or period code.
 4. Keep times in 24-hour format. For example, 3:25 PM is `15:25:00`.
 5. Use the date format required by that file type.
-6. Put quotation marks around a field that contains commas.
-7. Do not add extra notes above the header or below the data.
-8. Save the file as `.csv` using UTF-8 when your spreadsheet program asks for an encoding.
-9. Keep every file comma-separated. Put quotation marks around Main Schedule day lists and any other field containing commas.
+6. For Main Schedule, include a `Week` value on every row. Use `1` when there is only one schedule.
+7. Put quotation marks around a field that contains commas.
+8. Do not add extra notes above the header or below the data.
+9. Save the file as `.csv` using UTF-8 when your spreadsheet program asks for an encoding.
+10. Keep every file comma-separated. Put quotation marks around Main Schedule day lists and any other field containing commas.
 
 ## How To Upload A CSV
 

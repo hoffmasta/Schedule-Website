@@ -15,7 +15,10 @@ function parseAsCST(settings = {}) {
         cw: settings.cw || 100,
         rs: settings.rs || "no-repeat",
         fx: settings.fx || "None",
-        bi: settings.bi || ""
+        bi: settings.bi || "",
+        cdm: settings.cdm,
+        cdd: settings.cdd,
+        cdl: settings.cdl
     })
 }
 function parseCST(string) {
@@ -55,7 +58,10 @@ function downloadCST() {
         cw: sizingWidth,
         rs: repeatingStyle,
         fx: document.getElementById("fx")?.value || "None",
-        bi: localStorage.getItem("bgImage") || ""
+        bi: localStorage.getItem("bgImage") || "",
+        cdm: localStorage.getItem("countdownMode") || "csv",
+        cdd: localStorage.getItem("customCountdownDate") || "",
+        cdl: localStorage.getItem("customCountdownLabel") || ""
     })
     let file = new File([fileText],"theme.cst")
     const reader = new FileReader()

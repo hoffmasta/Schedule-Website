@@ -1,0 +1,63 @@
+english,spanish
+Schedule,Horario
+Appearance,Apariencia
+Background Image,Imagen de fondo
+Schedule Data,Datos del horario
+Count Down to Date,Cuenta regresiva hasta la fecha
+Custom,Personalizado
+Custom Countdown Date,Fecha de cuenta regresiva personalizada
+Custom Countdown Name,Nombre de cuenta regresiva personalizada
+Countdown Name,Nombre de cuenta regresiva
+Save Custom Countdown,Guardar cuenta regresiva personalizada
+Clear Custom Countdown,Borrar cuenta regresiva personalizada
+Campus / Grade,Campus / Grado
+Vinland - High School,Vinland - Escuela secundaria
+Local,Local
+Global,Global
+Schedule Week,Semana del horario
+This Week,Esta semana
+Schedule Data Source,Fuente de datos del horario
+Navbar Color,Color de la barra de navegación
+Text Color,Color del texto
+Countdown Text Color,Color del texto de la cuenta regresiva
+Countdown Background Color,Color de fondo de la cuenta regresiva
+Icon Color,Color del icono
+Background Color,Color de fondo
+Font Style,Estilo de fuente
+Custom FX,Efectos personalizados
+Presets,Preajustes
+Time Controller,Controlador de tiempo
+Download CST,Descargar CST
+Clear Image,Borrar imagen
+Clear Saved Fonts,Borrar fuentes guardadas
+Use Spanish,Usar español
+Navbar Opacity,Opacidad de la barra de navegación
+Reset Settings,Restablecer configuración
+ALT Background Image,Imagen de fondo alternativa
+Background Image settings,Configuración de imagen de fondo
+Background Image Sizing,Tamaño de imagen de fondo
+Background Image Repeating,Repetición de imagen de fondo
+Example Schedule Data,Datos de ejemplo del horario
+Download Example Data,Descargar datos de ejemplo
+Upload Schedule Data,Subir datos del horario
+CSV type to download,Tipo de CSV para descargar
+Choose File,Elegir archivo
+Choose CSV File,Elegir archivo CSV
+Clear File,Borrar archivo
+No file selected,Ningún archivo seleccionado
+No Schedule CSV Selected,Ningún CSV de horario seleccionado
+Custom Width,Ancho personalizado
+Main Schedule,Horario principal
+Countdown,Cuenta regresiva
+Special Days,Días especiales
+Period Text,Texto de periodos
+None,Ninguno
+Default,Predeterminado
+Classic,Clásico
+Milliseconds,Milisegundos
+Cover,Cubrir
+Contain,Contener
+No-Repeat,No repetir
+Repeat-X,Repetir horizontalmente
+Repeat-Y,Repetir verticalmente
+Repeat,Repetir

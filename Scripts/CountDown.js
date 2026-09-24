@@ -54,8 +54,23 @@ function animateCountdownMilliseconds(targetDate) {
 }
 
 async function getSelectedCountdown() {
-  const cacheKey = `${window.selectedCSVOption}|${isSpanishEnabled()}`;
+  const customMode = localStorage.getItem("countdownMode") === "custom";
+  const customDate = localStorage.getItem("customCountdownDate") || "";
+  const customLabel = localStorage.getItem("customCountdownLabel") || "";
+  const cacheKey = `${window.selectedCSVOption}|${customMode}|${customDate}|${customLabel}|${isSpanishEnabled()}`;
   if (cacheKey === selectedCountdownCacheKey) return selectedCountdownCache;
+
+  if (customMode && customDate) {
+    const targetDate = new Date(customDate);
+    if (!Number.isNaN(targetDate.getTime())) {
+      selectedCountdownCacheKey = cacheKey;
+      selectedCountdownCache = {
+        date: targetDate,
+        value: customLabel || "Custom Countdown"
+      };
+      return selectedCountdownCache;
+    }
+  }
 
   const index = await findRowIndexFromServer("Data/CountDownToDate.csv");
   const dateValue = getColumnValue(csvText, index, 3);
@@ -153,7 +168,9 @@ async function calculateTimeToEndMilliseconds(requestId) {
 }
 function calculateTimeToEnd(){
   const requestId = ++countdownRequestId;
-  const hasSelection = Boolean(String(window.selectedCSVOption || "").trim())
+  const hasCustomSelection = localStorage.getItem("countdownMode") === "custom"
+    && Boolean(localStorage.getItem("customCountdownDate"));
+  const hasSelection = hasCustomSelection || Boolean(String(window.selectedCSVOption || "").trim())
   countDown.style.display = hasSelection ? "" : "none"
   if (!hasSelection) {
     stopMillisecondAnimation();

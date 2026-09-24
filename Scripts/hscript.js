@@ -5,13 +5,24 @@ function hTimeControls() {
 let stringThing = "";
 const spanish = document.getElementById("span")
 const spanishParam = new URLSearchParams(window.location.search).get("spanish");
-const settingTranslations = {
+const fallbackSettingTranslations = {
     "Schedule": "Horario",
     "Appearance": "Apariencia",
     "Background Image": "Imagen de fondo",
     "Schedule Data": "Datos del horario",
     "Count Down to Date": "Cuenta regresiva hasta la fecha",
+    "Custom": "Personalizado",
+    "Custom Countdown Date": "Fecha de cuenta regresiva personalizada",
+    "Custom Countdown Name": "Nombre de cuenta regresiva personalizada",
+    "Countdown Name": "Nombre de cuenta regresiva",
+    "Save Custom Countdown": "Guardar cuenta regresiva personalizada",
+    "Clear Custom Countdown": "Borrar cuenta regresiva personalizada",
     "Campus / Grade": "Campus / Grado",
+    "Vinland - High School": "Vinland - Escuela secundaria",
+    "Local": "Local",
+    "Global": "Global",
+    "Schedule Week": "Semana del horario",
+    "This Week": "Esta semana",
     "Schedule Data Source": "Fuente de datos del horario",
     "Navbar Color": "Color de la barra de navegación",
     "Text Color": "Color del texto",
@@ -36,8 +47,12 @@ const settingTranslations = {
     "Example Schedule Data": "Datos de ejemplo del horario",
     "Download Example Data": "Descargar datos de ejemplo",
     "Upload Schedule Data": "Subir datos del horario",
+    "CSV type to download": "Tipo de CSV para descargar",
     "Choose File": "Elegir archivo",
+    "Choose CSV File": "Elegir archivo CSV",
+    "Clear File": "Borrar archivo",
     "No file selected": "Ningún archivo seleccionado",
+    "No Schedule CSV Selected": "Ningún CSV de horario seleccionado",
     "Custom Width": "Ancho personalizado",
     "Main Schedule": "Horario principal",
     "Countdown": "Cuenta regresiva",
@@ -55,25 +70,68 @@ const settingTranslations = {
     "Repeat-Y": "Repetir verticalmente",
     "Repeat": "Repetir"
 };
+
+function loadSettingTranslations() {
+    const baseMap = { ...fallbackSettingTranslations };
+    try {
+        if (typeof loadDatabaseText === "function") {
+            const csvText = loadDatabaseText("Data/SettingTranslations.csv", "settingTranslations");
+            if (csvText && csvText.trim()) {
+                const rows = csvText.split(/\r?\n/).filter(Boolean);
+                for (const row of rows.slice(1)) {
+                    const [english, spanish] = row.split(",").map(value => value.trim().replace(/^"|"$/g, ""));
+                    if (english && spanish) {
+                        baseMap[english] = spanish;
+                    }
+                }
+            }
+        }
+    } catch {
+        // Fall back to the built-in labels if the CSV cannot be read.
+    }
+    return baseMap;
+}
+
+const settingTranslations = loadSettingTranslations();
+function titleCaseSettingText(text) {
+    return text.replace(/(^|[\s-])([\p{L}\p{N}])/gu, (_, separator, character) => separator + character.toUpperCase());
+}
+function updateFileInputLayout() {
+    document.querySelectorAll("#settingsMenu .settingsContainer:has(> .file-input-control)").forEach(container => {
+        const label = container.querySelector(":scope > label");
+        if (!label) return;
+        const lineHeight = parseFloat(getComputedStyle(label).lineHeight) || 19;
+        container.classList.remove("file-input-needs-wrap");
+        const needsWrap = label.getBoundingClientRect().height > lineHeight * 1.25;
+        container.classList.toggle("file-input-needs-wrap", needsWrap);
+    });
+}
 function updateSettingsLanguage() {
     const useSpanish = spanish?.checked;
-    document.querySelectorAll("#settingsMenu label, #settingsMenu summary, #settingsMenu button, #settingsMenu .file-input-name, #settingsMenu select:not(#myDropdown) option, #settingsMenu #myDropdown option[value='']").forEach(element => {
+    document.querySelectorAll("#settingsMenu label, #settingsMenu summary, #settingsMenu button, #settingsMenu .file-input-name, #settingsMenu select:not(#myDropdown) option, #settingsMenu #myDropdown option[value=''], #settingsMenu #myDropdown option[value='custom']").forEach(element => {
         if (!element.dataset.englishText) element.dataset.englishText = element.textContent.trim();
         const englishText = element.dataset.englishText;
-        element.textContent = useSpanish ? settingTranslations[englishText] || englishText : englishText;
+        const translatedText = /^Week\s+.+$/i.test(englishText)
+            ? "Semana " + englishText.replace(/^Week\s+/i, "")
+            : settingTranslations[englishText] || englishText;
+        element.textContent = titleCaseSettingText(useSpanish ? translatedText : englishText);
     });
+    updateFileInputLayout();
 }
 function updateFileInputNames() {
     document.querySelectorAll("#settingsMenu input[type='file']").forEach(input => {
         const name = input.closest(".file-input-control")?.querySelector(".file-input-name");
         if (!name) return;
         name.dataset.fileName = input.files[0]?.name || "";
-        const englishText = input.files[0]?.name || "No file selected";
+        const emptyFileText = name.dataset.emptyFileText || "No file selected";
+        const englishText = input.files[0]?.name || emptyFileText;
         name.dataset.englishText = englishText;
-        name.textContent = spanish?.checked && !input.files[0]
+        const displayText = spanish?.checked && !input.files[0]
             ? settingTranslations[englishText]
             : englishText;
+        name.textContent = input.files[0] ? displayText : titleCaseSettingText(displayText);
     });
+    updateFileInputLayout();
 }
 if (spanish) {
     spanish.checked = spanishParam === null
@@ -81,6 +139,7 @@ if (spanish) {
         : ["1", "true", "yes", "on"].includes(spanishParam.toLowerCase());
     updateSettingsLanguage();
     updateFileInputNames();
+    requestAnimationFrame(updateFileInputLayout);
     document.querySelectorAll("#settingsMenu input[type='file']").forEach(input => {
         if (input.dataset.fileInputListenerAttached) return;
         input.addEventListener("change", updateFileInputNames);
@@ -94,6 +153,8 @@ if (spanish) {
             document.body.classList.add("language-change");
             setTimeout(() => document.body.classList.remove("language-change"), 320);
             updateSettingsLanguage();
+            updateFileInputLayout();
+            requestAnimationFrame(updateFileInputLayout);
             if (typeof addSettingsTooltips === "function") addSettingsTooltips();
             selectedNothingPrompt = null;
             wasOutsideScheduleWindow = false;

@@ -144,7 +144,9 @@ details[open] summary::after {
 }
 .settingsContainer select,
 .settingsContainer button,
-.settingsContainer input[type="file"] {
+.settingsContainer input[type="file"],
+.settingsContainer input[type="text"],
+.settingsContainer input[type="datetime-local"] {
     font: inherit;
     font-weight: normal;
     color: #ffffff;
@@ -153,8 +155,38 @@ details[open] summary::after {
     border-radius: 4px;
     padding: 5px 7px;
 }
+.settingsContainer input[type="text"],
+.settingsContainer input[type="datetime-local"] {
+    max-width: 62%;
+    box-sizing: border-box;
+    color-scheme: dark;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff;
+    caret-color: #ffffff;
+    appearance: none;
+    -webkit-appearance: none;
+    background: #30343b !important;
+    background-color: #30343b !important;
+    border: 1px solid #778693 !important;
+    filter: none !important;
+}
+.settingsContainer input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.85;
+}
+.settingsContainer input[type="text"]::placeholder,
+.settingsContainer input[type="datetime-local"]::placeholder {
+    color: #c8d0da;
+    opacity: 1;
+}
 .settingsContainer select {
     max-width: 62%;
+}
+#schedule-week-selector {
+    width: max-content !important;
+}
+#schedule-selection {
+    width: max-content !important;
 }
 .settingsContainer select option {
     font-family: inherit !important;
@@ -196,6 +228,35 @@ details[open] summary::after {
     max-width: 62%;
     min-width: 0;
 }
+.settingsContainer:has(#bg-img, #custom-schedule-file) .file-input-control {
+    width: 100%;
+    max-width: 100%;
+}
+.settingsContainer:has(> .file-input-control) {
+    flex-wrap: wrap;
+}
+.custom-countdown-setting[hidden] {
+    display: none !important;
+}
+.custom-special-day-setting[hidden] {
+    display: none !important;
+}
+.settingsContainer:has(> .file-input-control) > label {
+    font-size: 17px;
+    font-weight: normal;
+    line-height: 1.35;
+}
+.settingsContainer.file-input-needs-wrap > label {
+    order: 1;
+    flex: 1 1 100%;
+    width: 100%;
+}
+.settingsContainer.file-input-needs-wrap > .file-input-control {
+    order: 2;
+    flex: 1 1 100%;
+    max-width: calc(100% - 1.5em);
+    margin-left: 1.5em;
+}
 .file-input-control input[type="file"] {
     position: absolute;
     width: 1px;
@@ -204,7 +265,8 @@ details[open] summary::after {
     pointer-events: none;
 }
 .file-input-button {
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
+    width: max-content;
     padding: 5px 7px;
     color: #ffffff;
     background: #30343b;
@@ -217,6 +279,13 @@ details[open] summary::after {
 .file-input-button:focus-within {
     border-color: #b8cbe0;
     outline: 2px solid rgba(184, 203, 224, 0.25);
+}
+.clear-file-button {
+    flex: 0 0 28px !important;
+    width: 28px;
+    padding: 5px 0 !important;
+    font-weight: bold !important;
+    line-height: 1;
 }
 .file-input-name {
     overflow: hidden;
@@ -678,6 +747,12 @@ footer {
     }
     .settingsContainer label {
         width: 100%;
+    }
+    .settingsContainer:has(> .file-input-control) > label {
+        order: 1;
+    }
+    .settingsContainer:has(> .file-input-control) > .file-input-control {
+        order: 2;
     }
     .file-input-name {
         max-width: 100%;

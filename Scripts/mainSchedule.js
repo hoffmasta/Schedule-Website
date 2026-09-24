@@ -111,6 +111,7 @@ function buildScheduleFilterOptions() {
 		select.value = "";
 		localStorage.setItem("scheduleSelection", "");
 	}
+	if (typeof updateSettingsLanguage === "function") updateSettingsLanguage();
 
 	select.addEventListener("change", () => {
 		localStorage.setItem("scheduleSelection", select.value || "");
@@ -120,10 +121,13 @@ function buildScheduleFilterOptions() {
 
 function downloadScheduleExample() {
 	const csv = [
-		"Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Hour/Period,Start Time (24 hr),End Time (24 hr)",
-		"Vinland,High School,\"M, T, Th\",1,8:15:01,8:58",
-		"Vinland,High School,\"W, F\",1,8:59,9:40",
-		"Vinland,High School,\"M, T, W, Th, F\",HRM,8:15,8:15:01"
+		"Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Week,Hour/Period,Start Time (24 hr),End Time (24 hr)",
+		"Vinland,High School,\"M, T, Th\",1,1,8:15:01,8:58",
+		"Vinland,High School,\"M, T, Th\",2,1,8:30:00,9:13",
+		"Vinland,High School,\"W, F\",1,1,8:59,9:40",
+		"Vinland,High School,\"W, F\",2,1,9:10,9:51",
+		"Vinland,High School,\"M, T, W, Th, F\",1,HRM,8:15,8:15:01",
+		"Vinland,High School,\"M, T, W, Th, F\",2,HRM,8:15,8:15:01"
 	].join("\n");
 
 	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -226,6 +230,45 @@ function addSettingsTooltips() {
 document.addEventListener("DOMContentLoaded", () => {
 	buildScheduleFilterOptions();
 	addSettingsTooltips();
+	const updateClearFileButton = input => {
+		const button = document.querySelector(`.clear-file-button[data-clear-file="${input.id}"]`);
+		const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
+		const hasSavedFile = input.id === "bg-img"
+			? Boolean(localStorage.getItem("bgImage"))
+			: Boolean(localStorage.getItem(`customSchedule_${sheetKey}`));
+		if (button) button.hidden = !input.files.length && !hasSavedFile;
+	};
+	document.querySelectorAll("#settingsMenu input[type='file']").forEach(input => {
+		updateClearFileButton(input);
+		input.addEventListener("change", () => updateClearFileButton(input));
+	});
+
+	document.querySelectorAll(".clear-file-button").forEach(button => {
+		button.addEventListener("click", () => {
+			const input = document.getElementById(button.dataset.clearFile);
+			if (!input) return;
+			input.value = "";
+			button.hidden = true;
+			if (input.id === "bg-img") {
+				clearBGImg();
+				if (typeof updateFileInputNames === "function") {
+					updateFileInputNames();
+				} else {
+					const name = input.closest(".file-input-control")?.querySelector(".file-input-name");
+					if (name) {
+						name.dataset.fileName = "";
+						name.textContent = name.dataset.emptyFileText || "No file selected";
+					}
+				}
+				setBGImageStatus("");
+				return;
+			}
+			const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
+			localStorage.removeItem(`customSchedule_${sheetKey}`);
+			localStorage.removeItem(`customScheduleError_${sheetKey}`);
+			window.location.reload();
+		});
+	});
 
 	const uploadInput = document.getElementById("custom-schedule-file");
 	if (uploadInput) {
@@ -250,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (!supportedKeys.has(sheetKey) || !/\.csv$/i.test(file.name)) {
 				showUploadStatus("Upload issue: choose a valid CSV file for the selected data type.");
 				uploadInput.value = "";
+				updateClearFileButton(uploadInput);
 				return;
 			}
 			let text;
@@ -279,6 +323,61 @@ document.addEventListener("DOMContentLoaded", () => {
 	if (exampleButton) {
 		exampleButton.addEventListener("click", downloadScheduleExample);
 	}
+
+	const scheduleWeekSelector = document.getElementById("schedule-week-selector");
+	if (scheduleWeekSelector) {
+		const weekKeys = getScheduleWeekKeys();
+		const displayWeekKeys = weekKeys.length > 1 ? weekKeys : [];
+		scheduleWeekSelector.innerHTML = "<option value=\"auto\">This Week</option>" + displayWeekKeys.map(key => `<option value="${key}">Week ${key}</option>`).join("");
+		if (typeof updateSettingsLanguage === "function") updateSettingsLanguage();
+		const savedSelection = localStorage.getItem("scheduleWeekSelection") || "auto";
+		scheduleWeekSelector.value = ["auto", ...displayWeekKeys].includes(savedSelection) ? savedSelection : "auto";
+		scheduleWeekSelector.addEventListener("change", () => {
+			localStorage.setItem("scheduleWeekSelection", scheduleWeekSelector.value || "auto");
+			window.location.reload();
+		});
+
+		const autoWeekOption = scheduleWeekSelector.querySelector("option[value=\"auto\"]");
+		const updateAutoWeekOptionLabel = () => {
+			if (!autoWeekOption || displayWeekKeys.length === 0) return;
+			const activeWeekKey = getCurrentScheduleWeekKey(typeof getScheduleNow === "function" ? getScheduleNow() : new Date());
+			autoWeekOption.textContent = `Week ${activeWeekKey}`;
+		};
+		updateAutoWeekOptionLabel();
+		setInterval(updateAutoWeekOptionLabel, 30_000);
+	}
+
+	const specialDayMode = document.getElementById("special-day-mode");
+	const specialDayDate = document.getElementById("custom-special-day-date");
+	const specialDayName = document.getElementById("custom-special-day-name");
+	const setSpecialDaySettingVisibility = visible => {
+		document.querySelectorAll(".custom-special-day-setting").forEach(element => {
+			element.hidden = !visible;
+		});
+	};
+	const hasSavedSpecialDay = Boolean(localStorage.getItem("customSpecialDayDate") && localStorage.getItem("customSpecialDayName"));
+	if (specialDayDate) specialDayDate.value = localStorage.getItem("customSpecialDayDate") || "";
+	if (specialDayName) specialDayName.value = localStorage.getItem("customSpecialDayName") || "";
+	if (specialDayMode) {
+		specialDayMode.value = hasSavedSpecialDay ? "custom" : "";
+		setSpecialDaySettingVisibility(hasSavedSpecialDay);
+		specialDayMode.addEventListener("change", () => {
+			setSpecialDaySettingVisibility(specialDayMode.value === "custom");
+		});
+	}
+	document.getElementById("save-custom-special-day")?.addEventListener("click", () => {
+		const dateValue = specialDayDate?.value || "";
+		const nameValue = specialDayName?.value.trim() || "";
+		if (!dateValue || !nameValue || Number.isNaN(new Date(`${dateValue} 00:00:00`).getTime())) return;
+		localStorage.setItem("customSpecialDayDate", dateValue);
+		localStorage.setItem("customSpecialDayName", nameValue);
+		window.location.reload();
+	});
+	document.getElementById("clear-custom-special-day")?.addEventListener("click", () => {
+		localStorage.removeItem("customSpecialDayDate");
+		localStorage.removeItem("customSpecialDayName");
+		window.location.reload();
+	});
 });
 
 function isSpanishEnabled() {
@@ -304,22 +403,121 @@ function normalizeScheduleTime(value) {
 	return `${hour}:${minute}:${parts[2].padStart(2, "0")}`;
 }
 
+function normalizeWeekCode(value) {
+	if (typeof value !== "string") return "";
+	const trimmed = value.trim();
+	if (!trimmed) return "";
+	const lowered = trimmed.toLowerCase();
+	if (lowered === "week") return "";
+	if (/^week\s*[a-z]$/i.test(trimmed)) return trimmed.split(/\s+/).pop().toLowerCase();
+	if (/^week\s*\d+$/i.test(trimmed)) return String(Number(trimmed.match(/\d+/)[0]));
+	if (/^[a-z]$/i.test(trimmed)) return trimmed.toLowerCase();
+	if (/^\d+$/.test(trimmed)) return String(Number(trimmed));
+	return lowered;
+}
+
+function getScheduleDayColumns(columns, hasWeekColumn = false) {
+	if (!Array.isArray(columns) || columns.length === 0) return { days: "", week: "", period: "", start: "", end: "" };
+
+	if (!hasWeekColumn) {
+		const hasNameColumn = columns.length >= 7;
+		return {
+			days: columns[hasNameColumn ? 3 : 2],
+			week: "",
+			period: columns[hasNameColumn ? 4 : 3],
+			start: columns[hasNameColumn ? 5 : 4],
+			end: columns[hasNameColumn ? 6 : 5]
+		};
+	}
+
+	const hasNameColumn = columns.length >= 7;
+	const weekAtIndex3 = normalizeWeekCode(columns[3] || "");
+	const weekAtIndex4 = normalizeWeekCode(columns[4] || "");
+
+	if (weekAtIndex3 && columns.length >= 7) {
+		return {
+			days: columns[2],
+			week: weekAtIndex3,
+			period: columns[4],
+			start: columns[5],
+			end: columns[6]
+		};
+	}
+
+	if (weekAtIndex4 && columns.length >= 8) {
+		return {
+			days: columns[3],
+			week: weekAtIndex4,
+			period: columns[5],
+			start: columns[6],
+			end: columns[7]
+		};
+	}
+
+	return {
+		days: columns[hasNameColumn ? 3 : 2],
+		week: "",
+		period: columns[hasNameColumn ? 4 : 3],
+		start: columns[hasNameColumn ? 5 : 4],
+		end: columns[hasNameColumn ? 6 : 5]
+	};
+}
+
+function doesCsvHaveWeekColumn(filePath, sheetKey) {
+	const headerLine = loadDatabaseText(filePath, sheetKey).split(/\r?\n/).find(line => line.trim());
+	if (!headerLine) return false;
+	return parseDelimitedRow(headerLine).some(value => value.trim().toLowerCase() === "week");
+}
+
+function assignScheduleToDayGroup(schedules, dayList, period, time) {
+	if (["M", "T", "Th"].every(day => dayList.includes(day))) {
+		schedules.mtth[period] = time;
+	}
+	if (dayList.includes("W")) {
+		schedules.w[period] = time;
+	}
+	if (dayList.includes("F")) {
+		schedules.f[period] = time;
+	}
+}
+
+function getScheduleWeekSelection() {
+	const select = document.getElementById("schedule-week-selector");
+	const saved = localStorage.getItem("scheduleWeekSelection") || "auto";
+	const weekKeys = getScheduleWeekKeys();
+	const validValues = ["auto", ...weekKeys.filter((key, index) => weekKeys.length > 1 || index === 0 ? true : false)];
+	const displayWeekKeys = weekKeys.length > 1 ? weekKeys : [];
+	const value = validValues.includes(saved) ? saved : "auto";
+	if (select) {
+		const options = [...select.options].map(option => option.value);
+		if (!options.includes("auto") || !displayWeekKeys.every(key => options.includes(key))) {
+			const currentValue = select.value || value;
+			select.innerHTML = "<option value=\"auto\">This Week</option>" + displayWeekKeys.map(key => `<option value="${key}">Week ${key}</option>`).join("");
+			if (typeof updateSettingsLanguage === "function") updateSettingsLanguage();
+			select.value = validValues.includes(currentValue) ? currentValue : value;
+		}
+		select.value = validValues.includes(select.value) ? select.value : value;
+	}
+	localStorage.setItem("scheduleWeekSelection", value);
+	return value;
+}
+
 function loadMainSchedule() {
 	const schedules = {
 		mtth: {},
 		w: {},
 		f: {}
 	};
+	const weekSchedules = {};
+	const allWeeksSchedule = { mtth: {}, w: {}, f: {} };
+	let hasWeekSpecificRows = false;
 
 	const rows = loadCsvRows(scheduleFile, "mainSchedule");
+	const hasWeekColumn = doesCsvHaveWeekColumn(scheduleFile, "mainSchedule");
 
 	for (const row of rows) {
 		const columns = row;
-		const hasNameColumn = columns.length >= 7;
-		const days = columns[hasNameColumn ? 3 : 2];
-		const period = columns[hasNameColumn ? 4 : 3];
-		const start = columns[hasNameColumn ? 5 : 4];
-		const end = columns[hasNameColumn ? 6 : 5];
+		const { days, week, period, start, end } = getScheduleDayColumns(columns, hasWeekColumn);
 		if (!days || !period || !start || !end || period === "Hour/Period") continue;
 
 		let time;
@@ -334,15 +532,43 @@ function loadMainSchedule() {
 		const normalizedPeriod = period;
 		const dayList = days.split(",").map(day => day.trim());
 
-		if (["M", "T", "Th"].every(day => dayList.includes(day))) {
-			schedules.mtth[normalizedPeriod] = time;
+		if (week && week !== "all") {
+			hasWeekSpecificRows = true;
+			if (!weekSchedules[week]) {
+				weekSchedules[week] = { mtth: {}, w: {}, f: {} };
+			}
+			assignScheduleToDayGroup(weekSchedules[week], dayList, normalizedPeriod, time);
+			continue;
 		}
-		if (dayList.includes("W")) {
-			schedules.w[normalizedPeriod] = time;
+
+		assignScheduleToDayGroup(allWeeksSchedule, dayList, normalizedPeriod, time);
+		assignScheduleToDayGroup(schedules, dayList, normalizedPeriod, time);
+	}
+
+	if (hasWeekSpecificRows) {
+		const numericWeekKeys = Object.keys(weekSchedules).filter(key => /^\d+$/.test(key)).map(Number);
+		const maxWeekNumber = numericWeekKeys.length ? Math.max(...numericWeekKeys) : 0;
+		for (let weekNumber = 1; weekNumber <= maxWeekNumber; weekNumber += 1) {
+			const weekKey = String(weekNumber);
+			if (!weekSchedules[weekKey]) weekSchedules[weekKey] = { mtth: {}, w: {}, f: {} };
 		}
-		if (dayList.includes("F")) {
-			schedules.f[normalizedPeriod] = time;
+
+		const orderedWeekKeys = Object.keys(weekSchedules).sort((a, b) => {
+			const aNumber = Number.parseInt((a.match(/\d+/) || ["1"])[0], 10) || 1;
+			const bNumber = Number.parseInt((b.match(/\d+/) || ["1"])[0], 10) || 1;
+			return aNumber - bNumber;
+		});
+		for (const weekKey of orderedWeekKeys) {
+			schedules[weekKey] = {
+				mtth: { ...allWeeksSchedule.mtth, ...weekSchedules[weekKey].mtth },
+				w: { ...allWeeksSchedule.w, ...weekSchedules[weekKey].w },
+				f: { ...allWeeksSchedule.f, ...weekSchedules[weekKey].f }
+			};
 		}
+		const firstWeekKey = orderedWeekKeys[0] || "week1";
+		schedules.mtth = { ...(schedules[firstWeekKey]?.mtth || {}) };
+		schedules.w = { ...(schedules[firstWeekKey]?.w || {}) };
+		schedules.f = { ...(schedules[firstWeekKey]?.f || {}) };
 	}
 
 	return schedules;
@@ -461,19 +687,70 @@ function loadSpecialSchedules() {
 		}
 	}
 
+	const customDate = localStorage.getItem("customSpecialDayDate");
+	const customName = localStorage.getItem("customSpecialDayName");
+	if (customDate && customName) {
+		const parsedDate = new Date(`${customDate} 00:00:00`);
+		if (!Number.isNaN(parsedDate.getTime())) {
+			const dateKey = `${parsedDate.getMonth() + 1}/${parsedDate.getDate()}/${parsedDate.getFullYear()}`;
+			specialDayTypes[dateKey] = customName;
+			specialDayTypesSpanish[dateKey] = customName;
+			if (!schedules[dateKey]) schedules[dateKey] = {};
+		}
+	}
+
 	return schedules;
 }
 
+function getScheduleWeekKeys() {
+	if (!oshSchedules || typeof oshSchedules !== "object") return ["1"];
+	const keys = Object.keys(oshSchedules)
+		.filter(key => !["mtth", "w", "f"].includes(key))
+		.sort((a, b) => {
+			const aValue = Number.parseInt((String(a).match(/\d+/) || ["0"])[0], 10) || 0;
+			const bValue = Number.parseInt((String(b).match(/\d+/) || ["0"])[0], 10) || 0;
+			if (aValue !== bValue) return aValue - bValue;
+			return String(a).localeCompare(String(b));
+		});
+	return keys.length > 0 ? keys : ["1"];
+}
+
+function getIsoWeek(date) {
+	const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+	const day = utcDate.getUTCDay() || 7;
+	utcDate.setUTCDate(utcDate.getUTCDate() + 4 - day);
+	const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
+	const weekNumber = Math.ceil((((utcDate - yearStart) / 86400000) + 1) / 7);
+	return weekNumber;
+}
+
+function getCurrentScheduleWeekKey(date) {
+	const selectedWeek = getScheduleWeekSelection();
+	if (selectedWeek && selectedWeek !== "auto") return selectedWeek;
+
+	const weekKeys = getScheduleWeekKeys();
+	if (weekKeys.length <= 1) return weekKeys[0] || "1";
+	const cycleLength = weekKeys.length;
+	const currentWeekIndex = (getIsoWeek(date) - 1) % cycleLength;
+	return weekKeys[currentWeekIndex] || weekKeys[0];
+}
+
 function getRegularScheduleForDate(date) {
+	const weekKeys = getScheduleWeekKeys();
+	const activeWeekKey = weekKeys.length > 1 ? getCurrentScheduleWeekKey(date) : weekKeys[0] || "1";
+	const weekSchedule = oshSchedules && (oshSchedules[activeWeekKey] || oshSchedules.weekA || oshSchedules.weekB)
+		? oshSchedules[activeWeekKey] || oshSchedules.weekA || oshSchedules.weekB
+		: oshSchedules;
+
 	switch (date.getDay()) {
 	case 1:
 	case 2:
 	case 4:
-		return oshSchedules.mtth;
+		return weekSchedule?.mtth;
 	case 3:
-		return oshSchedules.w;
+		return weekSchedule?.w;
 	case 5:
-		return oshSchedules.f;
+		return weekSchedule?.f;
 	default:
 		return undefined;
 	}

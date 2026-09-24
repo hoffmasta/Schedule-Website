@@ -1,10 +1,11 @@
 const CONFIG = {
-  spreadsheetId: 'PASTE_GOOGLE_SHEET_ID_HERE',
+  spreadsheetId: 'AKfycbzhRFptdhnM4Md7YUKr5qcl--uy8J9FlvzCfvH0T2neGYhuB_Z85IvNvxay-LhanEG84g',
   sheetNames: [
     'MainSchedule',
     'CountDownToDate',
     'SpecialScheduleDays',
-    'PeriodText'
+    'PeriodText',
+    'SettingTranslations'
   ]
 };
 
