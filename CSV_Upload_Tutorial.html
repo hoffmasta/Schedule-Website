@@ -75,12 +75,13 @@
         <p class="lead">Use this guide to edit schedule data safely and upload it to the website.</p>
     </header>
 
-    <h2>The Four File Types</h2>
+    <h2>The Five File Types</h2>
     <div class="grid">
         <article class="card"><h3>Main Schedule</h3><p>Controls the normal start and end times for each period on Monday through Friday.</p></article>
         <article class="card"><h3>Countdown</h3><p>Controls countdown events such as breaks, quarter ends, and the end of the year.</p></article>
         <article class="card"><h3>Special Days</h3><p>Controls no-school days, breaks, early releases, finals, and special weeks.</p></article>
         <article class="card"><h3>Period Text</h3><p>Converts period codes such as <code>WH</code> or <code>L</code> into display names.</p></article>
+        <article class="card"><h3>Spanish Translations</h3><p>Translates website settings and interface text into Spanish.</p></article>
     </div>
 
     <h2>What Each File Contains</h2>
@@ -107,6 +108,11 @@ Early Release,Vinland,High School,11/25/2026,Normal,8:15,12:00,Salida temprana</
         <pre>Code,Text, Text in Spanish
 WH,Warrior Hour,Hora del Guerrero
 L,Lunch,Almuerzo</pre>
+            <h3>Spanish Translations</h3>
+            <p>Columns: English text and Spanish text. These values translate labels and settings throughout the website.</p>
+            <pre>english,spanish
+        Schedule,Horario
+        Appearance,Apariencia</pre>
     </section>
 
     <h2>How to Add or Change Period Text</h2>
@@ -139,7 +145,7 @@ L,Lunch,Almuerzo
             <li>Use 24-hour times, such as <code>15:25:00</code> for 3:25 PM.</li>
             <li>Use the date format shown for that file type.</li>
             <li>Put quotation marks around any field containing commas.</li>
-            <li>Save as a UTF-8 <code>.csv</code> file. All four files use comma-separated columns.</li>
+            <li>Save as a UTF-8 <code>.csv</code> file. All five files use comma-separated columns.</li>
         </ol>
     </section>
 
@@ -147,11 +153,13 @@ L,Lunch,Almuerzo
     <section>
         <ol>
             <li>Open Settings, then open <strong>Schedule Data</strong>.</li>
-            <li>Choose the matching type in <strong>CSV type to upload</strong>.</li>
-            <li>Click <strong>Choose CSV File</strong> and select one CSV.</li>
-            <li>The site saves it in this browser and reloads the schedule.</li>
+            <li>Choose <strong>CSV type to download</strong> when downloading an example.</li>
+            <li>Click <strong>Choose CSV Files</strong> and select one or more CSV files.</li>
+            <li>When uploading multiple files, use only one file for each CSV type. Types are identified from filenames and headers.</li>
+            <li>The site saves the files in this browser and reloads the schedule.</li>
+            <li>Use the <strong>X</strong> button to clear all uploaded CSV files.</li>
         </ol>
-        <div class="notice"><strong>Important:</strong> Select the correct type before choosing the file. A Main Schedule CSV selected as Period Text will be rejected.</div>
+        <div class="notice"><strong>Important:</strong> Download fresh examples after choosing a type. Do not select two Main Schedule files in the same upload batch.</div>
     </section>
 
     <h2>Which Data Wins?</h2>

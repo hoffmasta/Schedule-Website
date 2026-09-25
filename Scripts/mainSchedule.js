@@ -120,37 +120,103 @@ function buildScheduleFilterOptions() {
 }
 
 function downloadScheduleExample() {
-	const csv = [
-		"Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Week,Hour/Period,Start Time (24 hr),End Time (24 hr)",
-		"Vinland,High School,\"M, T, Th\",1,1,8:15:01,8:58",
-		"Vinland,High School,\"M, T, Th\",2,1,8:30:00,9:13",
-		"Vinland,High School,\"W, F\",1,1,8:59,9:40",
-		"Vinland,High School,\"W, F\",2,1,9:10,9:51",
-		"Vinland,High School,\"M, T, W, Th, F\",1,HRM,8:15,8:15:01",
-		"Vinland,High School,\"M, T, W, Th, F\",2,HRM,8:15,8:15:01"
-	].join("\n");
+	const filenames = {
+		mainSchedule: "MainScheduleExample.csv",
+		countdown: "CountdownExample.csv",
+		specialScheduleDays: "SpecialDaysExample.csv",
+		periodText: "PeriodTextExample.csv"
+		,settingTranslations: "SpanishTranslationsExample.csv"
+	};
+	const examples = {
+		mainSchedule: [
+			"Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Week,Hour/Period,Start Time (24 hr),End Time (24 hr)",
+			"Vinland,High School,\"M, T, Th\",1,1,8:15:01,8:58",
+			"Vinland,High School,\"M, T, Th\",2,1,8:30:00,9:13",
+			"Vinland,High School,\"W, F\",1,1,8:59,9:40",
+			"Vinland,High School,\"W, F\",2,1,9:10,9:51",
+			"Vinland,High School,\"M, T, W, Th, F\",1,HRM,8:15,8:15:01",
+			"Vinland,High School,\"M, T, W, Th, F\",2,HRM,8:15,8:15:01"
+		],
+		countdown: [
+			"Name,Campus,Grade Level Category/Group,\"Date (Month Day, Year)\",Time (24 hrs),Name in Spanish",
+			"End of QTR 1,Vinland,High School,\"October 16, 2026\",15:25:00,Fin del trimestre 1"
+		],
+		specialScheduleDays: [
+			"Name,Campus,Grade Level Category/Group,Date/s (mm/dd/yyyy),Hour/Period,Start Time (24 hr),End Time (24 hr),Name in Spanish",
+			"Early Release,Vinland,High School,11/25/2026,Normal,8:15,12:00,Salida temprana"
+		],
+		periodText: [
+			"Code,Text,Text in Spanish",
+			"WH,Warrior Hour,Hora del Guerrero",
+			"L,Lunch,Almuerzo"
+		],
+		settingTranslations: [
+			"english,spanish",
+			"Schedule,Horario",
+			"Appearance,Apariencia",
+			"Spanish Translations,Traducciones al español"
+		]
+	};
+	const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
+	const csv = (examples[sheetKey] || examples.mainSchedule).join("\n");
 
 	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement("a");
 	link.href = url;
-	link.download = "ScheduleExample.csv";
+	link.download = filenames[sheetKey] || filenames.mainSchedule;
 	document.body.appendChild(link);
 	link.click();
 	link.remove();
 	URL.revokeObjectURL(url);
 }
 
+const uploadedCsvHeaderRequirements = {
+	mainSchedule: ["period", "start time", "end time"],
+	countdown: ["date", "time"],
+	specialScheduleDays: ["date", "hour/period"],
+	periodText: ["code", "text"],
+	settingTranslations: ["english", "spanish"]
+};
+
+function getUploadedCsvType(text, fileName = "") {
+	if (!text.trim()) return "";
+	const normalizedFileName = fileName.toLowerCase().replace(/[^a-z]/g, "");
+	if (normalizedFileName.includes("special")) return "specialScheduleDays";
+	if (normalizedFileName.includes("countdown")) return "countdown";
+	if (normalizedFileName.includes("periodtext")) return "periodText";
+	if (normalizedFileName.includes("settingtranslations") || normalizedFileName.includes("translation")) return "settingTranslations";
+	if (normalizedFileName.includes("mainschedule")) return "mainSchedule";
+	const headerLine = text.split(/\r?\n/).find(line => line.trim());
+	if (!headerLine) return "";
+	const normalizedHeader = headerLine
+		.replace(/^\uFEFF/, "")
+		.replace(/[\"']/g, "")
+		.replace(/\t/g, ",")
+		.toLowerCase();
+	const hasColumn = pattern => pattern.test(normalizedHeader);
+	const hasDateColumn = hasColumn(/(?:^|,)\s*date(?:\/s)?(?:\s|,|\()/);
+
+	if (hasDateColumn && hasColumn(/(?:^|,)\s*hour\/period\s*(?:,|$)/)) return "specialScheduleDays";
+	if (hasDateColumn && hasColumn(/(?:^|,)\s*time(?:\s|,|\()/)) return "countdown";
+	if (hasColumn(/(?:^|,)\s*code\s*(?:,|$)/) && hasColumn(/(?:^|,)\s*text(?:\s|,|$)/)) return "periodText";
+	if (hasColumn(/(?:^|,)\s*english\s*(?:,|$)/) && hasColumn(/(?:^|,)\s*spanish\s*(?:,|$)/)) return "settingTranslations";
+	if (hasColumn(/(?:^|,)\s*day(?:s|\/s)?\s+of the week/)
+		&& hasColumn(/(?:^|,)\s*hour\/period\s*(?:,|$)/)
+		&& hasColumn(/(?:^|,)\s*start time\b/)
+		&& hasColumn(/(?:^|,)\s*end time\b/)) return "mainSchedule";
+	return "";
+}
+
 function uploadedCsvLooksValid(text, sheetKey) {
 	if (!text.trim()) return false;
-	const header = text.split(/\r?\n/, 1)[0].toLowerCase();
-	const requiredHeaders = {
-		mainSchedule: ["period", "start time", "end time"],
-		countdown: ["date", "time"],
-		specialScheduleDays: ["date", "hour/period"],
-		periodText: ["code", "text"]
-	};
-	return requiredHeaders[sheetKey].every(value => header.includes(value));
+	const header = text.split(/\r?\n/, 1)[0].replace(/^\uFEFF/, "").toLowerCase();
+	if (sheetKey === "periodText") {
+		const columns = parseDelimitedRow(header).map(value => value.trim());
+		return /^code$/i.test(columns[0] || "") && /^text(?:\s|$)/i.test(columns[1] || "");
+	}
+	const requiredHeaders = uploadedCsvHeaderRequirements[sheetKey];
+	return Boolean(requiredHeaders?.every(value => header.includes(value)));
 }
 
 function addSettingsTooltips() {
@@ -206,7 +272,8 @@ function addSettingsTooltips() {
 				mainSchedule: "Choose the regular class schedule data",
 				countdown: "Choose countdown date data",
 				specialScheduleDays: "Choose special school-day data",
-				periodText: "Choose period name and description data"
+				periodText: "Choose period name and description data",
+				settingTranslations: "Choose Spanish interface translations"
 			}
 		};
 		const spanishOptionHelp = {
@@ -218,7 +285,8 @@ function addSettingsTooltips() {
 				mainSchedule: "Elige los datos del horario normal de clases",
 				countdown: "Elige los datos de fechas de cuenta regresiva",
 				specialScheduleDays: "Elige los datos de días escolares especiales",
-				periodText: "Elige los datos de nombres y descripciones de periodos"
+				periodText: "Elige los datos de nombres y descripciones de periodos",
+				settingTranslations: "Elige las traducciones de la interfaz al español"
 			}
 		};
 		option.title = useSpanish
@@ -233,14 +301,23 @@ document.addEventListener("DOMContentLoaded", () => {
 	const updateClearFileButton = input => {
 		const button = document.querySelector(`.clear-file-button[data-clear-file="${input.id}"]`);
 		const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
+		const displayedFileName = input.closest(".file-input-control")?.querySelector(".file-input-name")?.dataset.fileName;
 		const hasSavedFile = input.id === "bg-img"
 			? Boolean(localStorage.getItem("bgImage"))
-			: Boolean(localStorage.getItem(`customSchedule_${sheetKey}`));
+			: input.id === "custom-schedule-file"
+				? Boolean(displayedFileName) || Object.keys(localStorage).some(key => key.startsWith("customScheduleFileName_"))
+				: Boolean(localStorage.getItem(`customSchedule_${sheetKey}`));
 		if (button) button.hidden = !input.files.length && !hasSavedFile;
 	};
 	document.querySelectorAll("#settingsMenu input[type='file']").forEach(input => {
 		updateClearFileButton(input);
 		input.addEventListener("change", () => updateClearFileButton(input));
+	});
+	const sheetSelect = document.getElementById("custom-schedule-sheet");
+	sheetSelect?.addEventListener("change", () => {
+		if (typeof updateFileInputNames === "function") updateFileInputNames();
+		const uploadInput = document.getElementById("custom-schedule-file");
+		if (uploadInput) updateClearFileButton(uploadInput);
 	});
 
 	document.querySelectorAll(".clear-file-button").forEach(button => {
@@ -263,9 +340,13 @@ document.addEventListener("DOMContentLoaded", () => {
 				setBGImageStatus("");
 				return;
 			}
-			const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
-			localStorage.removeItem(`customSchedule_${sheetKey}`);
-			localStorage.removeItem(`customScheduleError_${sheetKey}`);
+			for (const key of Object.keys(localStorage)) {
+				if (key.startsWith("customSchedule_")
+					|| key.startsWith("customScheduleFileName_")
+					|| key.startsWith("customScheduleError_")) {
+					localStorage.removeItem(key);
+				}
+			}
 			window.location.reload();
 		});
 	});
@@ -273,7 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	const uploadInput = document.getElementById("custom-schedule-file");
 	if (uploadInput) {
 		const uploadStatus = document.getElementById("schedule-upload-status");
-		const sheetSelect = document.getElementById("custom-schedule-sheet");
 		const showUploadStatus = message => {
 			if (!uploadStatus) return;
 			uploadStatus.textContent = message;
@@ -286,35 +366,42 @@ document.addEventListener("DOMContentLoaded", () => {
 			showUploadStatus(`Upload issue: using ${sourceName} until a valid CSV is uploaded.`);
 		}
 		uploadInput.addEventListener("change", async () => {
-			const file = uploadInput.files[0];
-			if (!file) return;
-			const sheetKey = sheetSelect?.value || "mainSchedule";
-			const supportedKeys = new Set(["mainSchedule", "countdown", "specialScheduleDays", "periodText"]);
-			if (!supportedKeys.has(sheetKey) || !/\.csv$/i.test(file.name)) {
-				showUploadStatus("Upload issue: choose a valid CSV file for the selected data type.");
-				uploadInput.value = "";
-				updateClearFileButton(uploadInput);
-				return;
+			const files = Array.from(uploadInput.files || []);
+			if (!files.length) return;
+			const uploadedFiles = [];
+			const seenTypes = new Set();
+			for (const file of files) {
+				if (!/\.csv$/i.test(file.name)) {
+					showUploadStatus("Upload issue: choose only CSV files.");
+					return;
+				}
+				let text;
+				try {
+					text = await file.text();
+				} catch {
+					showUploadStatus(`Upload issue: ${file.name} could not be read. No files were uploaded.`);
+					return;
+				}
+				const detectedSheetKey = getUploadedCsvType(text, file.name);
+				const sheetKey = files.length === 1
+					? detectedSheetKey || sheetSelect?.value || "mainSchedule"
+					: detectedSheetKey;
+				if (!sheetKey || !uploadedCsvLooksValid(text, sheetKey)) {
+					showUploadStatus(`Upload issue: ${file.name} does not match a supported CSV type. No files were uploaded.`);
+					return;
+				}
+				if (seenTypes.has(sheetKey)) {
+					showUploadStatus(`Upload issue: more than one ${sheetKey} CSV was selected. Choose one file per type.`);
+					return;
+				}
+				seenTypes.add(sheetKey);
+				uploadedFiles.push({ sheetKey, file, text });
 			}
-			let text;
-			try {
-				text = await file.text();
-			} catch {
-				localStorage.removeItem(`customSchedule_${sheetKey}`);
-				localStorage.setItem(`customScheduleError_${sheetKey}`, "true");
-				showUploadStatus("Upload issue: this CSV could not be read, so fallback data will be used.");
-				window.location.reload();
-				return;
+			for (const { sheetKey, file, text } of uploadedFiles) {
+				localStorage.removeItem(`customScheduleError_${sheetKey}`);
+				localStorage.setItem(`customSchedule_${sheetKey}`, text);
+				localStorage.setItem(`customScheduleFileName_${sheetKey}`, file.name);
 			}
-			if (!uploadedCsvLooksValid(text, sheetKey)) {
-				localStorage.removeItem(`customSchedule_${sheetKey}`);
-				localStorage.setItem(`customScheduleError_${sheetKey}`, "true");
-				showUploadStatus("Upload issue: this CSV does not match the selected type, so fallback data will be used.");
-				window.location.reload();
-				return;
-			}
-			localStorage.removeItem(`customScheduleError_${sheetKey}`);
-			localStorage.setItem(`customSchedule_${sheetKey}`, text);
 			window.location.reload();
 		});
 	}
@@ -337,14 +424,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			window.location.reload();
 		});
 
-		const autoWeekOption = scheduleWeekSelector.querySelector("option[value=\"auto\"]");
-		const updateAutoWeekOptionLabel = () => {
-			if (!autoWeekOption || displayWeekKeys.length === 0) return;
-			const activeWeekKey = getCurrentScheduleWeekKey(typeof getScheduleNow === "function" ? getScheduleNow() : new Date());
-			autoWeekOption.textContent = `Week ${activeWeekKey}`;
-		};
-		updateAutoWeekOptionLabel();
-		setInterval(updateAutoWeekOptionLabel, 30_000);
 	}
 
 	const specialDayMode = document.getElementById("special-day-mode");

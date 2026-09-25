@@ -292,6 +292,12 @@ details[open] summary::after {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.file-input-control:has(#custom-schedule-file) .file-input-name {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
 .file-upload-status {
     flex: 1 1 100%;
     min-width: 0;

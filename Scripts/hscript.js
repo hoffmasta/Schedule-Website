@@ -49,6 +49,7 @@ const fallbackSettingTranslations = {
     "Upload Schedule Data": "Subir datos del horario",
     "CSV type to download": "Tipo de CSV para descargar",
     "Choose File": "Elegir archivo",
+    "Choose CSV Files": "Elegir archivos CSV",
     "Choose CSV File": "Elegir archivo CSV",
     "Clear File": "Borrar archivo",
     "No file selected": "Ningún archivo seleccionado",
@@ -58,6 +59,7 @@ const fallbackSettingTranslations = {
     "Countdown": "Cuenta regresiva",
     "Special Days": "Días especiales",
     "Period Text": "Texto de periodos",
+    "Spanish Translations": "Traducciones al español",
     "None": "Ninguno",
     "Default": "Predeterminado",
     "Classic": "Clásico",
@@ -122,14 +124,24 @@ function updateFileInputNames() {
     document.querySelectorAll("#settingsMenu input[type='file']").forEach(input => {
         const name = input.closest(".file-input-control")?.querySelector(".file-input-name");
         if (!name) return;
-        name.dataset.fileName = input.files[0]?.name || "";
+        const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
+        const savedFileNames = input.id === "custom-schedule-file"
+            ? Object.keys(localStorage)
+                .filter(key => key.startsWith("customScheduleFileName_"))
+                .map(key => localStorage.getItem(key))
+                .filter(Boolean)
+            : [];
+        const savedFileName = savedFileNames.join(", ");
+        const selectedFileNames = Array.from(input.files || [], file => file.name);
+        const selectedFileName = selectedFileNames.join(", ");
+        name.dataset.fileName = selectedFileName || savedFileName;
         const emptyFileText = name.dataset.emptyFileText || "No file selected";
-        const englishText = input.files[0]?.name || emptyFileText;
+        const englishText = selectedFileName || savedFileName || emptyFileText;
         name.dataset.englishText = englishText;
-        const displayText = spanish?.checked && !input.files[0]
+        const displayText = spanish?.checked && !selectedFileNames.length
             ? settingTranslations[englishText]
             : englishText;
-        name.textContent = input.files[0] ? displayText : titleCaseSettingText(displayText);
+        name.textContent = selectedFileNames.length || savedFileName ? displayText : titleCaseSettingText(displayText);
     });
     updateFileInputLayout();
 }

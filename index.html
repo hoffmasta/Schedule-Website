@@ -219,6 +219,7 @@
                     <option value="countdown">Countdown</option>
                     <option value="specialScheduleDays">Special Days</option>
                     <option value="periodText">Period Text</option>
+                    <option value="settingTranslations">Spanish Translations</option>
                 </select>
                 <label class="setText">CSV type to download</label>
             </div>
@@ -230,8 +231,8 @@
             </div>
             <div class="settingsContainer" tabindex="-1">
                 <div class="file-input-control">
-                    <input id="custom-schedule-file" type="file" accept=".csv,text/csv" class="settings">
-                    <label class="file-input-button" for="custom-schedule-file">Choose File</label>
+                    <input id="custom-schedule-file" type="file" accept=".csv,text/csv" class="settings" multiple>
+                    <label class="file-input-button" for="custom-schedule-file">Choose CSV Files</label>
                     <button type="button" class="clear-file-button" data-clear-file="custom-schedule-file" aria-label="Clear selected schedule file" title="Clear selected schedule file" hidden>X</button>
                     <span class="file-input-name" data-empty-file-text="No Schedule CSV Selected">No Schedule CSV Selected</span>
                     <span id="schedule-upload-status" class="file-upload-status" role="status" aria-live="polite" hidden></span>
@@ -274,7 +275,7 @@
     </footer>
         <script src="Scripts/googleSheets.js"></script>
     <script src="Scripts/testClock.js"></script>
-    <script src="Scripts/mainSchedule.js"></script>
+    <script src="Scripts/mainSchedule.js?v=20260925-uploadtypes10"></script>
     <script src="Scripts/hscript.js"></script>
     <script src="Scripts/CountDown.js" defer></script>
     <script defer src="Scripts/script.js?v=20260924"></script>
