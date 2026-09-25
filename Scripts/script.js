@@ -665,12 +665,18 @@ function setCustomSize() {
     document.body.style.backgroundSize = value
 }
 let isUpdNavBarOp = false
+function setNavbarBackdrop(value) {
+    const backdrop = Number(value) === 0 ? "none" : "blur(4px) brightness(0.9)"
+    actualNavBar.style.backdropFilter = backdrop
+    actualNavBar.style.webkitBackdropFilter = backdrop
+}
 function updateNbOp(element) {
     isUpdNavBarOp = true
+    actualNavBar.style.opacity = "1"
+    setNavbarBackdrop(element.value)
     function anim() {
         if (!isUpdNavBarOp) return
         space.style.opacity = element.value
-        actualNavBar.style.opacity = element.value
         requestAnimationFrame(anim)
     }
     anim()
@@ -680,8 +686,9 @@ function cancelUpdateNbOp() {
 }
 function saveNavbarOpacity(element) {
     localStorage.setItem("navbarOpacity", element.value)
+    actualNavBar.style.opacity = "1"
+    setNavbarBackdrop(element.value)
     space.style.opacity = element.value
-    actualNavBar.style.opacity = element.value
 }
 let isInSettings = false
 let canClick = true
@@ -1284,7 +1291,6 @@ function applyPreset(name) {
     fontName = preset['fn']
     if (preset['no'] || preset['no'] == 0) {
         space.style.opacity = preset['no']
-        actualNavBar.style.opacity = preset['no']
         const navbarOpacity = document.getElementById("navbar-opacity")
         if (navbarOpacity) navbarOpacity.value = preset['no']
     }
