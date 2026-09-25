@@ -665,6 +665,10 @@ function setCustomSize() {
     document.body.style.backgroundSize = value
 }
 let isUpdNavBarOp = false
+function updateNavbarOpacityTrack(element) {
+    const progress = Math.max(0, Math.min(1, Number(element.value))) * 100
+    element.style.setProperty("--range-progress", `${progress}%`)
+}
 function setNavbarBackdrop(value) {
     const backdrop = Number(value) === 0 ? "none" : "blur(4px) brightness(0.9)"
     actualNavBar.style.backdropFilter = backdrop
@@ -673,10 +677,12 @@ function setNavbarBackdrop(value) {
 function updateNbOp(element) {
     isUpdNavBarOp = true
     actualNavBar.style.opacity = "1"
+    updateNavbarOpacityTrack(element)
     setNavbarBackdrop(element.value)
     function anim() {
         if (!isUpdNavBarOp) return
         space.style.opacity = element.value
+        updateNavbarOpacityTrack(element)
         requestAnimationFrame(anim)
     }
     anim()
@@ -687,6 +693,7 @@ function cancelUpdateNbOp() {
 function saveNavbarOpacity(element) {
     localStorage.setItem("navbarOpacity", element.value)
     actualNavBar.style.opacity = "1"
+    updateNavbarOpacityTrack(element)
     setNavbarBackdrop(element.value)
     space.style.opacity = element.value
 }

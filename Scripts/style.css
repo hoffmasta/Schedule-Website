@@ -308,8 +308,41 @@ details[open] summary::after {
     display: none;
 }
 #navbar-opacity {
-    filter: none;
-    accent-color: #0086ba;
+    appearance: none;
+    filter: none !important;
+    width: 129px;
+    height: 16px;
+    margin: 2px;
+    cursor: pointer;
+    --range-progress: 100%;
+    background: transparent;
+}
+#navbar-opacity::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #0086ba 0 var(--range-progress), #d0d0d0 var(--range-progress) 100%);
+}
+#navbar-opacity::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    margin-top: -3px;
+    border: 0;
+    border-radius: 50%;
+    background: #0086ba;
+}
+#navbar-opacity::-moz-range-track {
+    height: 6px;
+    border: 0;
+    border-radius: 3px;
+    background: linear-gradient(to right, #0086ba 0 var(--range-progress), #d0d0d0 var(--range-progress) 100%);
+}
+#navbar-opacity::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 0;
+    border-radius: 50%;
+    background: #0086ba;
 }
 #span {
     accent-color: #ff7945;
