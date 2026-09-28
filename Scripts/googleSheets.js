@@ -1,7 +1,7 @@
 window.databaseSource = localStorage.getItem("databaseSource") || "local";
 
 window.googleSheetsConfig = {
-    endpoint: "https://script.google.com/macros/s/AKfycbzf5gB46t5nn84PFmrdvhUU2PT7fa-f6jpjMAfq75RlBnxQah1tbYKWoZ4bU4--yQmo2w/exec",
+    endpoint: "https://script.google.com/macros/s/AKfycbzhRFptdhnM4Md7YUKr5qcl--uy8J9FlvzCfvH0T2neGYhuB_Z85IvNvxay-LhanEG84g/exec",
     enabled: true,
     sheetNames: {
         mainSchedule: "MainSchedule",
@@ -72,8 +72,16 @@ async function fetchGoogleSheetData(sheetKey) {
 
     const response = await fetch(url);
     const text = await response.text();
-    if (!response.ok || !text.trim()) {
-        throw new Error(`Google Sheet ${config.sheetNames[sheetKey]} returned no data`);
+    const contentType = response.headers.get("content-type") || "";
+    const trimmedText = text.trim();
+    if (!response.ok) {
+        throw new Error(`Google Sheets request failed for ${config.sheetNames[sheetKey]} (HTTP ${response.status})`);
+    }
+    if (!trimmedText || !contentType.includes("text/csv") || /^error\s*,/i.test(trimmedText)) {
+        const details = /^error\s*,/i.test(trimmedText)
+            ? trimmedText
+            : `unexpected response (${contentType || "missing content type"})`;
+        throw new Error(`Google Sheet ${config.sheetNames[sheetKey]} failed: ${details}`);
     }
     return { sheetKey, text };
 }
