@@ -45,7 +45,7 @@ const fallbackSettingTranslations = {
     "Background Image Sizing": "Tamaño de imagen de fondo",
     "Background Image Repeating": "Repetición de imagen de fondo",
     "Example Schedule Data": "Datos de ejemplo del horario",
-    "Download Example Data": "Descargar datos de ejemplo",
+    "Download CSV Data": "Descargar datos CSV",
     "Upload Schedule Data": "Subir datos del horario",
     "CSV type to download": "Tipo de CSV para descargar",
     "Choose File": "Elegir archivo",

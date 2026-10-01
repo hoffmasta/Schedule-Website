@@ -119,52 +119,29 @@ function buildScheduleFilterOptions() {
 	});
 }
 
-function downloadScheduleExample() {
-	const filenames = {
-		mainSchedule: "MainScheduleExample.csv",
-		countdown: "CountdownExample.csv",
-		specialScheduleDays: "SpecialDaysExample.csv",
-		periodText: "PeriodTextExample.csv"
-		,settingTranslations: "SpanishTranslationsExample.csv"
-	};
-	const examples = {
-		mainSchedule: [
-			"Campus,Grade Level Category/Group,Day/s of the Week(M,T,W,Th, and/or F),Week,Hour/Period,Start Time (24 hr),End Time (24 hr)",
-			"Vinland,High School,\"M, T, Th\",1,1,8:15:01,8:58",
-			"Vinland,High School,\"M, T, Th\",2,1,8:30:00,9:13",
-			"Vinland,High School,\"W, F\",1,1,8:59,9:40",
-			"Vinland,High School,\"W, F\",2,1,9:10,9:51",
-			"Vinland,High School,\"M, T, W, Th, F\",1,HRM,8:15,8:15:01",
-			"Vinland,High School,\"M, T, W, Th, F\",2,HRM,8:15,8:15:01"
-		],
-		countdown: [
-			"Name,Campus,Grade Level Category/Group,\"Date (Month Day, Year)\",Time (24 hrs),Name in Spanish",
-			"End of QTR 1,Vinland,High School,\"October 16, 2026\",15:25:00,Fin del trimestre 1"
-		],
-		specialScheduleDays: [
-			"Name,Campus,Grade Level Category/Group,Date/s (mm/dd/yyyy),Hour/Period,Start Time (24 hr),End Time (24 hr),Name in Spanish",
-			"Early Release,Vinland,High School,11/25/2026,Normal,8:15,12:00,Salida temprana"
-		],
-		periodText: [
-			"Code,Text,Text in Spanish",
-			"WH,Warrior Hour,Hora del Guerrero",
-			"L,Lunch,Almuerzo"
-		],
-		settingTranslations: [
-			"english,spanish",
-			"Schedule,Horario",
-			"Appearance,Apariencia",
-			"Spanish Translations,Traducciones al español"
-		]
+function downloadScheduleCsv() {
+	const csvFiles = {
+		mainSchedule: scheduleFile,
+		countdown: "Data/CountDownToDate.csv",
+		specialScheduleDays: specialScheduleFile,
+		periodText: periodTextFile,
+		settingTranslations: "Data/SettingTranslations.csv"
 	};
 	const sheetKey = document.getElementById("custom-schedule-sheet")?.value || "mainSchedule";
-	const csv = (examples[sheetKey] || examples.mainSchedule).join("\n");
+	const filePath = csvFiles[sheetKey] || scheduleFile;
+	let csv;
+	try {
+		csv = loadDatabaseText(filePath, sheetKey);
+	} catch {
+		showScheduleDataStatus("Download failed: the selected CSV could not be loaded.");
+		return;
+	}
 
 	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement("a");
 	link.href = url;
-	link.download = filenames[sheetKey] || filenames.mainSchedule;
+	link.download = filePath.split("/").pop();
 	document.body.appendChild(link);
 	link.click();
 	link.remove();
@@ -406,9 +383,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
-	const exampleButton = document.getElementById("download-schedule-example");
-	if (exampleButton) {
-		exampleButton.addEventListener("click", downloadScheduleExample);
+	const downloadButton = document.getElementById("download-schedule-csv");
+	if (downloadButton) {
+		downloadButton.addEventListener("click", downloadScheduleCsv);
 	}
 
 	const scheduleWeekSelector = document.getElementById("schedule-week-selector");
