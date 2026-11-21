@@ -3,8 +3,6 @@ try {
     const classicTime = typeof hTimeControls === "function" ? hTimeControls : null;
     let current = Number(localStorage.getItem("timeControl")) || 1;
     let scheduleTimer;
-    let nextScheduleTickAt = 0;
-    let lastRefreshInterval = 0;
     const countdownRefreshInterval = 1000;
     const noClassPromptRefreshInterval = 5000;
     const activeScheduleRefreshInterval = 100;
@@ -64,26 +62,19 @@ try {
     }
 
     function scheduleTick() {
-        const refreshInterval = getRefreshInterval();
-        if (refreshInterval !== lastRefreshInterval || nextScheduleTickAt === 0) {
-            nextScheduleTickAt = performance.now() + refreshInterval;
-            lastRefreshInterval = refreshInterval;
-        }
         timer();
-        nextScheduleTickAt += refreshInterval;
-        scheduleTimer = setTimeout(scheduleTick, Math.max(0, nextScheduleTickAt - performance.now()));
+        const refreshInterval = getRefreshInterval();
+        scheduleTimer = setTimeout(scheduleTick, refreshInterval);
+        window.scheduleTimer = scheduleTimer;
     }
 
     function restartTimer() {
         if (scheduleTimer) clearTimeout(scheduleTimer);
-        nextScheduleTickAt = 0;
-        lastRefreshInterval = 0;
         scheduleTick();
     }
 
     window.restartScheduleTimer = restartTimer;
     restartTimer();
-    window.scheduleTimer = scheduleTimer;
 } catch (err) {
     if (window.con) con.innerHTML = err;
 }

@@ -26,15 +26,7 @@ function getCsvCampusAndGrade(columns) {
 	if (["Name", "Campus"].includes(second)) return { campus: third, grade: "" };
 
 	const secondLooksLikeGradeGroup = /school|grade|middle|elementary|junior|senior|freshman|sophomore/i.test(second);
-	const thirdLooksLikeDayCode = /^(m|t|w|th|f|hrm|zh|l|normal|school|week|[0-9]+)$/i.test(third);
-
-	if (secondLooksLikeGradeGroup && thirdLooksLikeDayCode) {
-		return { campus: first, grade: second };
-	}
-
-	if (secondLooksLikeGradeGroup && !thirdLooksLikeDayCode) {
-		return { campus: first, grade: second };
-	}
+	if (secondLooksLikeGradeGroup) return { campus: first, grade: second };
 
 	return { campus: second, grade: third };
 }

@@ -1,29 +1,11 @@
 const counter = document.getElementById("count-text")
 const countDown = document.getElementById("count-down")
 let counterMode = 0 //0 = days, 1 = hours
-let csvText = "";
 let countdownRequestId = 0;
 let lastDisplayedCountdown = "";
 let selectedCountdownCacheKey = "";
 let selectedCountdownCache = null;
 let millisecondAnimationFrame = 0;
-// 1. Fetches CSV text and finds the row index
-async function findRowIndexFromServer(filePath) {
-  csvText = loadDatabaseText(filePath.endsWith('.csv') ? filePath : `${filePath}.csv`, "countdown");
-  const rows = csvText.replace(/\r/g, "").split('\n').filter(r => r.trim()).map(parseDelimitedRow).filter(rowMatchesSelectedSchedule);
-  return rows.findIndex(columns => columns[0]?.trim() === String(window.selectedCSVOption).trim());
-}
-
-// 2. Returns a column value based on row index
-function getColumnValue(csvText, rowIndex, columnIndex) {
-    if (!csvText || rowIndex === -1) return null;
-    const rows = csvText.replace(/\r/g, "").split('\n').filter(r => r.trim()).map(parseDelimitedRow).filter(rowMatchesSelectedSchedule);
-  return rows[rowIndex]?.[columnIndex]?.replace(/^"|"$/g, "").trim() || null;
-}
-
-function getFirstColumnValue(csvText, rowIndex) {
-  return getColumnValue(csvText, rowIndex, 0);
-}
 
 function displayCountdown(time, value) {
   const displayKey = `${time}|${value}`;
@@ -72,12 +54,16 @@ async function getSelectedCountdown() {
     }
   }
 
-  const index = await findRowIndexFromServer("Data/CountDownToDate.csv");
-  const dateValue = getColumnValue(csvText, index, 3);
-  const timeValue = getColumnValue(csvText, index, 4);
-  const selectedRow = csvText.replace(/\r/g, "").split('\n').filter(r => r.trim()).map(parseDelimitedRow).filter(rowMatchesSelectedSchedule)[index];
-  const selectedColumns = selectedRow || [];
-  const targetDate = dateValue && timeValue ? new Date(`${dateValue} ${timeValue}`) : null;
+  const selectedRow = loadDatabaseText("Data/CountDownToDate.csv", "countdown")
+    .split(/\r?\n/)
+    .map(row => row.trim())
+    .filter(Boolean)
+    .map(parseDelimitedRow)
+    .filter(rowMatchesSelectedSchedule)
+    .find(columns => columns[0]?.trim() === String(window.selectedCSVOption).trim());
+  const targetDate = selectedRow?.[3] && selectedRow[4]
+    ? new Date(`${selectedRow[3]} ${selectedRow[4]}`)
+    : null;
 
   if (!targetDate || Number.isNaN(targetDate.getTime())) {
     selectedCountdownCacheKey = cacheKey;
@@ -88,71 +74,55 @@ async function getSelectedCountdown() {
   selectedCountdownCacheKey = cacheKey;
   selectedCountdownCache = {
     date: targetDate,
-    value: getLocalizedCsvValue(selectedColumns, 0, 5) || "Select a countdown"
+    value: getLocalizedCsvValue(selectedRow, 0, 5) || "Select a countdown"
   };
   return selectedCountdownCache;
 }
-async function calculateTimeToEndHours(requestId) {  
+function getCountdownParts(difference) {
+  const totalSeconds = difference / 1000;
+  const totalHours = Math.floor(totalSeconds / 3600);
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const days = Math.floor(totalSeconds / 86400);
+
+  return {
+    days,
+    totalHours,
+    hours: totalHours - days * 24,
+    minutes: totalMinutes - totalHours * 60,
+    seconds: Math.floor(totalSeconds) - totalMinutes * 60
+  };
+}
+
+async function calculateTimeToEndHours(requestId) {
   const selectedCountdown = await getSelectedCountdown()
   if (!selectedCountdown) return
 
-  const dif = selectedCountdown.date.getTime() - Date.now()
-  const date = new Date().setTime(dif)
-
-  const hours = ((dif / 1000) / 3600)
-  const hoursFract = (hours - Math.floor(hours))
-  const minutes = (hoursFract) * 60
-  const minutesFract = minutes - Math.floor(minutes)
-  const seconds = (minutesFract) * 60
-
-  const hour = Math.floor(hours)
-  const minute = Math.floor(minutes)
-  const second = Math.floor(seconds)
+  const { totalHours, minutes, seconds } = getCountdownParts(selectedCountdown.date.getTime() - Date.now());
 
   const value = selectedCountdown.value;
   if (requestId !== countdownRequestId) return;
-  const time = `${hour}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")}<br>${value}`;
+  const time = `${totalHours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}<br>${value}`;
   displayCountdown(time, value);
-
 }
 async function calculateTimeToEndDays(requestId) {
   const selectedCountdown = await getSelectedCountdown()
   if (!selectedCountdown) return
 
-  const dif = selectedCountdown.date.getTime() - Date.now()
-  const date = new Date().setTime(dif)
-
-  const days = ((dif / 1000) / (3600*24))
-  const daysFract = (days - Math.floor(days))
-  const hours = (daysFract * 24)
-  const hoursFract = (hours - Math.floor(hours))
-  const minutes = (hoursFract) * 60
-  const minutesFract = minutes - Math.floor(minutes)
-  const seconds = (minutesFract) * 60
-
-  const day = Math.floor(days)
-  const hour = Math.floor(hours)
-  const minute = Math.floor(minutes)
-  const second = Math.floor(seconds)
+  const { days, hours, minutes, seconds } = getCountdownParts(selectedCountdown.date.getTime() - Date.now());
 
   const value = selectedCountdown.value;
   if (requestId !== countdownRequestId) return;
   const time = isSpanishEnabled()
-    ? `${day} días y ${hour}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")} horas<br>${value}`
-    : `${day} days and ${hour}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")} hours<br>${value}`;
+    ? `${days} días y ${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} horas<br>${value}`
+    : `${days} days and ${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} hours<br>${value}`;
   displayCountdown(time, value);
 }
 async function calculateTimeToEndMilliseconds(requestId) {
   const selectedCountdown = await getSelectedCountdown();
   if (!selectedCountdown) return;
 
-  const difference = selectedCountdown.date.getTime() - Date.now();
-  const totalMilliseconds = Math.max(0, difference);
-  const days = Math.floor(totalMilliseconds / 86400000);
-  const totalHours = Math.floor(totalMilliseconds / 3600000);
-  const hours = Math.floor((totalMilliseconds % 86400000) / 3600000);
-  const minutes = Math.floor((totalMilliseconds % 3600000) / 60000);
-  const seconds = Math.floor((totalMilliseconds % 60000) / 1000);
+  const totalMilliseconds = Math.max(0, selectedCountdown.date.getTime() - Date.now());
+  const { days, totalHours, hours, minutes, seconds } = getCountdownParts(totalMilliseconds);
   const milliseconds = totalMilliseconds % 1000;
 
   const value = selectedCountdown.value;
@@ -192,14 +162,6 @@ function calculateTimeToEnd(){
       calculateTimeToEndHours(requestId)
   }
 }
-function formatTime(num) {
-  if (num < 10) {
-    return num
-  }
-  return "0" + parseString(num)
-
-}
-
 counter.onclick = () => {
   //toggle days to hours and visa-versa
   if (counterMode == 0) {

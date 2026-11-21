@@ -177,7 +177,6 @@ if (spanish) {
     }
 }
 var whileCount = 0;
-const loopDelay = 500;
 const endPrompts = [["School's out, it's time to", "celebrate!", "No more homework, isn't that great?", ], ["Done with classes, it's", "time to shine!", "Enjoy the free time."], ["School's over, it's", "party time!", "Celebrate the day's uphill climb."], ["Out of school, now it's", "chillaxing!", "No more textbooks, it's relaxing.", ], ["No more lectures, it's", "fun o'clock!", "Enjoy the freedom around the block.", ], ["School's out, it's", "time to roam!", "No more classrooms, head home."], ["School's out, time to", "laugh and play!", "Leave the stress far, far away.", ], ["School's out, it's time to", "celebrate!", "No more school, that's pretty great.", ], ["Done with school, it's", "time to unwind!", "Relax and leave your stress behind.", ], ["School's over, it's", "party time!", "Celebrate the day, it's all prime."], ["Out of school, now it's", "chill and cheer!", "No more textbooks, the coast is clear.", ], ["No more lectures, it's", "fun o'clock!", "Enjoy the evening, let your laughter rock.", ], ["School's out, it's", "time to thrive!", "No more classes, embrace the vibe.", ], ];
 const nothingPrompts = [
     ["Nothing to See Here", "", ""],

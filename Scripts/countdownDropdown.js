@@ -107,8 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.addEventListener('input', updateCountdownSelection);
     e.addEventListener('change', updateCountdownSelection);
     try {
-        const txt = loadDatabaseText('Data/CountDownToDate.csv', 'countdown');
-        const rows = txt.split('\n').map(r => r.trim()).filter(Boolean).map(parseDelimitedRow).filter(rowMatchesSelectedSchedule);
+        const rows = loadCsvRows('Data/CountDownToDate.csv', 'countdown');
         rows.forEach(columns => {
             const value = columns[0]?.trim();
             const label = getLocalizedCsvValue(columns, 0, 5);
