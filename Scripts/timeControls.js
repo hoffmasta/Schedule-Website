@@ -41,7 +41,9 @@ try {
     }
 
     function getRefreshInterval() {
-        const hasCountdown = Boolean(String(window.selectedCSVOption || "").trim());
+        const hasCustomCountdown = localStorage.getItem("countdownMode") === "custom"
+            && Boolean(localStorage.getItem("customCountdownDate"));
+        const hasCountdown = hasCustomCountdown || Boolean(String(window.selectedCSVOption || "").trim());
         const scheduleTimes = Array.isArray(window.scheduleTimes) ? window.scheduleTimes : [];
         if (scheduleTimes.length === 0) {
             return hasCountdown ? countdownRefreshInterval : noClassPromptRefreshInterval;
@@ -74,6 +76,9 @@ try {
     }
 
     window.restartScheduleTimer = restartTimer;
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) restartTimer();
+    });
     restartTimer();
 } catch (err) {
     if (window.con) con.innerHTML = err;
